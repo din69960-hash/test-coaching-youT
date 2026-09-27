@@ -1,0 +1,2284 @@
+<!DOCTYPE html> 
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coaching Dine — Entraînement</title>
+<style>
+  :root{
+    --ink:#12172b; --ink2:#1c2340; --panel:#ffffff; --bg:#eef1f7;
+    --line:#dfe3ee; --muted:#6b7391; --text:#242a44;
+    --barre:#e8a33d; --poutre:#e0568b; --sol:#2fb89e; --saut:#7c6ce0;
+    --go:#ff5a5f; --go-d:#e23f45; --lime:#c4f542; --ok:#22a06b; --radius:16px;
+    --shadow:0 8px 30px rgba(20,25,45,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--text); -webkit-tap-highlight-color:transparent;
+  }
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  input,select,textarea{font-family:inherit;font-size:15px}
+  a{color:inherit}
+
+  /* ---------- App shell ---------- */
+  #app{min-height:100%;display:flex;flex-direction:column}
+  .topbar{
+    position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;
+    padding:12px 16px;background:var(--ink);color:#fff;
+    padding-top:calc(12px + env(safe-area-inset-top));
+  }
+  .topbar .brand{font-weight:800;letter-spacing:.5px;font-size:18px}
+  .topbar .brand span{opacity:.6;font-weight:500;font-size:13px;margin-left:6px}
+  .topbar .role{margin-left:auto;font-size:12px;background:rgba(255,255,255,.14);
+    padding:5px 10px;border-radius:999px}
+  .back{background:rgba(255,255,255,.14);border-radius:10px;padding:7px 11px;font-size:14px;font-weight:600}
+  .back:active{transform:scale(.96)}
+  .wrap{width:100%;max-width:920px;margin:0 auto;padding:18px 16px 60px;flex:1}
+  .crumbs{font-size:13px;color:var(--muted);margin:2px 0 14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .crumbs b{color:var(--text)}
+  h1{font-size:24px;margin:4px 0 2px}
+  h2{font-size:19px;margin:22px 0 10px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:14px}
+
+  /* ---------- Home ---------- */
+  .home{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:#000;color:#fff;text-align:center}
+  .home .logo{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+  .home .logo img{max-width:min(92vw,560px);max-height:62vh;object-fit:contain}
+  .home .logoFallback{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .home .logoFallback .mark{font-size:clamp(48px,15vw,110px);font-weight:900;letter-spacing:6px;
+    background:linear-gradient(120deg,var(--barre),var(--poutre),var(--saut),var(--sol));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .home .logoFallback small{opacity:.55;letter-spacing:3px;text-transform:uppercase;font-size:12px}
+  .home .entries{padding:0 20px calc(46px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;
+    max-width:360px;margin:0 auto;width:100%}
+  .home .entries button{padding:16px;border-radius:14px;font-size:16px;font-weight:800;
+    background:var(--lime);color:#0a0a0a}
+  .home .entries button.admin{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.25);font-weight:600}
+  .home .entries button:active{transform:scale(.98)}
+
+  /* ---------- Cards / tiles ---------- */
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .tiles.three{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:760px){.tiles.three{grid-template-columns:1fr 1fr}}
+  /* ---------- Formation (liens YouTube) ---------- */
+  .yt-item{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:13px;background:#fff;margin-bottom:10px}
+  .yt-thumb{width:136px;aspect-ratio:16/9;border-radius:9px;overflow:hidden;background:#12172b;position:relative;flex-shrink:0;cursor:pointer}
+  .yt-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .yt-thumb::after{content:'▶';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;background:rgba(0,0,0,.28)}
+  .yt-info{flex:1;min-width:0}
+  .yt-info .name{font-weight:700;overflow:hidden;text-overflow:ellipsis}
+  .yt-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .yt-player{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+  .yt-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  @media(max-width:560px){ .yt-thumb{width:100px} .yt-item{gap:9px;padding:8px} }
+  @media(max-width:560px){.tiles{grid-template-columns:1fr}}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;box-shadow:var(--shadow);text-align:left;display:flex;flex-direction:column;gap:6px}
+  .tile:active{transform:translateY(1px)}
+  .tile .t{font-size:18px;font-weight:800}
+  .tile .d{font-size:13.5px;color:var(--muted)}
+  .tile .em{font-size:30px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+
+  /* ---------- Buttons ---------- */
+  .btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;
+    padding:11px 16px;border-radius:12px;font-weight:700;font-size:14.5px;background:var(--ink);color:#fff}
+  .btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+  .btn.g{background:linear-gradient(120deg,var(--go),var(--go-d));font-size:16px;padding:15px 22px}
+  .btn.ghost{background:#eef1fa;color:var(--ink)}
+  .btn.line{background:#fff;border:1px solid var(--line);color:var(--text)}
+  .btn.danger{background:#fdecec;color:#c8302f}
+  .btn:active{transform:scale(.98)}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap}
+
+  .apparatus-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 18px}
+  @media(max-width:560px){.apparatus-tabs{grid-template-columns:1fr 1fr}}
+  .atab{border-radius:14px;padding:16px 10px;font-weight:800;color:#fff;text-align:center;font-size:16px;
+    box-shadow:var(--shadow);position:relative}
+  .atab small{display:block;font-weight:600;opacity:.85;font-size:11.5px;margin-top:3px}
+  .atab:active{transform:translateY(1px)}
+  .a-barre{background:linear-gradient(135deg,var(--barre),#c9832a)}
+  .a-poutre{background:linear-gradient(135deg,var(--poutre),#c23c72)}
+  .a-sol{background:linear-gradient(135deg,var(--sol),#219a83)}
+  .a-saut{background:linear-gradient(135deg,var(--saut),#5f4fce)}
+
+  .pill-tabs{display:flex;gap:8px;background:#e6eaf3;padding:5px;border-radius:14px;margin-bottom:16px;overflow:auto}
+  .pill-tabs button{flex:1;white-space:nowrap;padding:10px 12px;border-radius:10px;font-weight:700;font-size:14px;color:var(--muted)}
+  .pill-tabs button.on{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(20,25,45,.08)}
+  @media(max-width:560px){
+    .pill-tabs{flex-wrap:wrap;overflow:visible}
+    .pill-tabs button{flex:1 1 calc(50% - 4px);font-size:13px;padding:9px 8px}
+  }
+
+  .list-item{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid var(--line);
+    border-radius:13px;background:#fff;margin-bottom:10px}
+  .list-item .name{font-weight:700;flex:1}
+  .list-item .meta{font-size:12px;color:var(--muted)}
+  .chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;color:#fff}
+
+  .empty{text-align:center;color:var(--muted);padding:34px 16px;border:1.5px dashed var(--line);border-radius:14px}
+
+  label.fld{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin:0 0 5px}
+  .inp{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fff}
+  select.inp{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12'><path d='M2 4l4 4 4-4' stroke='%236b7391' fill='none' stroke-width='2'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+  textarea.inp{min-height:64px;resize:vertical}
+
+  /* ---------- Exercise table ---------- */
+  .exo{border:1px solid var(--line);border-radius:16px;background:#fff;margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow)}
+  .exo-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f7f8fc;border-bottom:1px solid var(--line)}
+  .exo-head .exo-title{font-weight:800;flex:1}
+  .exo-head .exo-title input{border:0;background:transparent;font-weight:800;font-size:16px;width:100%}
+  .exo-body{padding:14px}
+  .media-cell{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .media-slot{flex:1;min-width:150px}
+  .media-slot .box{border:1.5px dashed var(--line);border-radius:12px;aspect-ratio:16/10;display:flex;
+    align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:13px;overflow:hidden;background:#fafbff}
+  .media-slot .box video,.media-slot .box img{width:100%;height:100%;object-fit:cover}
+  .media-slot .cap{font-size:12px;font-weight:700;color:var(--muted);margin:0 0 5px}
+
+  /* ---------- Mini media (colonne « Forme récup. ») ---------- */
+  .mini-media{width:100%;max-width:88px;margin:0 auto;aspect-ratio:16/12;border-radius:9px;overflow:hidden;
+    border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;text-align:center;
+    color:var(--muted);font-size:11px;background:#fafbff}
+  .mini-media video,.mini-media img{width:100%;height:100%;object-fit:cover;display:block}
+  .mini-media span{font-size:11px;padding:2px;line-height:1.2}
+
+  /* ---------- Temps de récup (vue gymnaste) ---------- */
+  .recup-time{display:inline-block;font-weight:800;font-size:12.5px;color:var(--ink);
+    background:#eef1fa;border-radius:8px;padding:4px 7px;white-space:nowrap}
+  .recup-form-tag{display:inline-block;font-weight:700;font-size:12px;color:var(--ink);
+    background:#eef1fa;border-radius:8px;padding:4px 9px}
+
+  /* ---------- Objectif de l'exercice ---------- */
+  .objectif-box{margin-bottom:12px;padding:10px 13px;border-radius:12px;font-size:14px;
+    background:#f0f9f4;border:1px solid #cdeeda;color:#166a44}
+
+  /* ---------- Glisser-déposer (réordonner les exercices) ---------- */
+  .drag-handle{cursor:grab;font-size:20px;line-height:1;color:var(--muted);padding:2px 6px;
+    user-select:none;touch-action:none;border-radius:8px}
+  .drag-handle:hover{background:#eef1fa;color:var(--ink)}
+  .drag-handle:active{cursor:grabbing}
+  .sort-item{position:relative}
+  .sort-item.drag-active{box-shadow:0 16px 46px rgba(20,25,45,.30);border-radius:16px;opacity:.96}
+  .drag-placeholder{border:2px dashed var(--go);border-radius:16px;background:#fff4f4;margin-bottom:16px}
+  .drop-into{outline:3px solid var(--ok);outline-offset:-3px;background:#e7f8ef!important}
+  .gl-folder .name{color:var(--ink)}
+  .gl-folder{background:#f7f8fc}
+
+  table.grid{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.grid th,table.grid td{border:1px solid var(--line);padding:5px 3px;text-align:center;vertical-align:middle}
+  table.grid th{background:#f2f4fa;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:800}
+  table.grid select,table.grid input{width:100%;min-width:44px;padding:6px 2px;border:1px solid var(--line);border-radius:8px;text-align:center;background:#fff}
+  table.grid .colhead{position:relative}
+  /* Compactage mobile : police réduite + colonnes plus étroites pour en voir plus */
+  @media(max-width:560px){
+    table.grid{font-size:11px}
+    table.grid th{font-size:9px;letter-spacing:0;padding:3px 2px}
+    table.grid td{padding:3px 2px}
+    table.grid td[style]{min-width:0!important}         /* neutralise les largeurs mini fixes */
+    table.grid select,table.grid input{min-width:32px!important;padding:4px 1px;font-size:11px}
+    .recup-time,.recup-form-tag{font-size:10px;padding:2px 4px;white-space:normal}
+    .tblwrap{margin:0 -10px;padding:0 10px}
+  }
+  .dupbtn{font-size:10.5px;font-weight:700;color:var(--ink);background:#eef1fa;border-radius:7px;padding:2px 6px;margin-top:3px;display:inline-block}
+  .addcol{font-size:11px;font-weight:800;color:#fff;background:var(--ink);border-radius:7px;padding:2px 7px;margin-left:5px}
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px}
+
+  .plus{display:flex;justify-content:center;margin:10px 0 2px}
+  .plus button{width:44px;height:44px;border-radius:50%;background:var(--ink);color:#fff;font-size:26px;line-height:1;box-shadow:var(--shadow)}
+
+  .feedback{margin-top:10px;padding:11px 13px;border-radius:12px;font-weight:700;font-size:14px}
+  .fb-bravo{background:#e7f8ef;color:#128a54}
+  .fb-low{background:#fdeceb;color:#c53a37}
+  .fb-mid{background:#fff6e6;color:#a9741a}
+  .fb-high{background:#eaf3fe;color:#2364b8}
+
+  /* ---------- Modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(15,20,40,.55);z-index:60;display:flex;align-items:center;
+    justify-content:center;padding:18px}
+  .modal{background:#fff;border-radius:18px;width:100%;max-width:560px;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .modal .m-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .modal .m-head h3{margin:0;font-size:18px;flex:1}
+  .modal .m-body{padding:18px}
+  .modal .m-close{font-size:22px;color:var(--muted);width:34px;height:34px;border-radius:9px;background:#f2f4fa}
+
+  .media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+  .media-thumb{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fafbff;cursor:pointer}
+  .media-thumb .th{aspect-ratio:16/11;background:#eef1f7;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .media-thumb .th video,.media-thumb .th img{width:100%;height:100%;object-fit:cover}
+  .media-thumb .lb{padding:7px 8px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .media-thumb:active{transform:scale(.98)}
+
+  .dropzone{border:2px dashed var(--line);border-radius:14px;padding:26px;text-align:center;color:var(--muted);background:#fafbff}
+  .dropzone.hot{border-color:var(--go);background:#fff4f4;color:var(--go)}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#fff;
+    padding:12px 18px;border-radius:12px;font-weight:600;z-index:90;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s}
+  .toast.show{opacity:1;bottom:34px}
+
+  .selbar{position:sticky;bottom:0;z-index:20;background:linear-gradient(180deg,rgba(238,241,247,0),var(--bg) 40%);
+    padding:14px 0 calc(10px + env(safe-area-inset-bottom));margin-top:8px}
+  .rowbtns{display:flex;gap:8px;flex-wrap:wrap}
+  .muted{color:var(--muted)}
+  .badge-count{font-size:12px;background:#eef1fa;color:var(--ink);font-weight:800;border-radius:999px;padding:2px 8px}
+  .selectable{cursor:pointer}
+  .selectable.sel{outline:2px solid var(--go);outline-offset:-2px;background:#fff4f4}
+  .flex{display:flex;gap:10px;align-items:center}
+  .grow{flex:1}
+  .spacer{height:8px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   AGIRS — Application d'entraînement (single file, IndexedDB)
+   ============================================================ */
+const APP = (() => {
+
+/* ---------- Constants ---------- */
+const APPARATUS = [
+  {key:'barre',  label:'Barre',  cls:'a-barre',  chip:'var(--barre)'},
+  {key:'poutre', label:'Poutre', cls:'a-poutre', chip:'var(--poutre)'},
+  {key:'sol',    label:'Sol',    cls:'a-sol',    chip:'var(--sol)'},
+  {key:'saut',   label:'Saut',   cls:'a-saut',   chip:'var(--saut)'},
+];
+const APP_META = Object.fromEntries(APPARATUS.map(a=>[a.key,a]));
+const EXEC = ['Exécution lente','Exécution normale','Exécution rapide','Exécution très rapide'];
+const DEFAULT_SETTINGS = {};   // plus aucun mot de passe dans le code (hash SHA-256 stocké dans les réglages)
+const PASS_SALT = 'coaching-dine::v1::';
+async function hashPass(p){
+  const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(PASS_SALT+p));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+const DEFAULT_FOLDER_IDS = ['barre','poutre','sol','saut'];
+const DEFAULT_FOLDERS = [
+  {id:'barre',  name:'Barre',  parent:null},
+  {id:'poutre', name:'Poutre', parent:null},
+  {id:'sol',    name:'Sol',    parent:null},
+  {id:'saut',   name:'Saut',   parent:null},
+];
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const LOGO_DATA = "data:image/webp;base64,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";
+
+/* ============================================================
+   IndexedDB layer
+   ============================================================ */
+const DB = (() => {
+  let db=null;
+  const NAME='agirs_entrainement', VER=1;
+  const STORES=['kv','gymnasts','programs','fullPrograms','media'];
+  function open(){
+    return new Promise((res,rej)=>{
+      const r=indexedDB.open(NAME,VER);
+      r.onupgradeneeded=e=>{
+        const d=e.target.result;
+        STORES.forEach(s=>{ if(!d.objectStoreNames.contains(s)) d.createObjectStore(s,{keyPath:'id'}); });
+      };
+      r.onsuccess=e=>{db=e.target.result;res(db)};
+      r.onerror=e=>rej(e.target.error);
+    });
+  }
+  function tx(store,mode){ return db.transaction(store,mode).objectStore(store); }
+  function all(store){return new Promise((res,rej)=>{const r=tx(store,'readonly').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+  function get(store,id){return new Promise((res,rej)=>{const r=tx(store,'readonly').get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+  function put(store,obj){return new Promise((res,rej)=>{const r=tx(store,'readwrite').put(obj);r.onsuccess=()=>res(obj);r.onerror=()=>rej(r.error);});}
+  function del(store,id){return new Promise((res,rej)=>{const r=tx(store,'readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+  function clear(store){return new Promise((res,rej)=>{const r=tx(store,'readwrite').clear();r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+  return {open,all,get,put,del,clear};
+})();
+
+/* ============================================================
+   Supabase (cloud) — synchro des donnees
+   ============================================================ */
+const SUPA_URL = 'https://kehvxapkbrkzaavrvdpt.supabase.co';
+const SUPA_KEY = 'sb_publishable_ACMnhG_N7a2P99IsjS523w_J7tMyHJx';
+const CLOUD_MAP = { gymnasts:'coaching_gymnasts', programs:'coaching_programs', fullPrograms:'coaching_full_programs', media:'coaching_media' };
+const SUPA_BUCKET = 'coaching-media';
+let sb=null, CLOUD_ENABLED=false;
+try{
+  if(window.supabase && window.supabase.createClient){
+    sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {auth:{persistSession:false}});
+    CLOUD_ENABLED = true;
+  }
+}catch(e){ console.warn("Supabase init impossible:", e); }
+
+const Cloud = {
+  online:false,
+  async pullEverything(){
+    if(!sb) throw new Error("no client");
+    const [g,p,fp,kv,md] = await Promise.all([
+      sb.from("coaching_gymnasts").select("data"),
+      sb.from("coaching_programs").select("data"),
+      sb.from("coaching_full_programs").select("data"),
+      sb.from("coaching_kv").select("id,data"),
+      sb.from("coaching_media").select("data"),
+    ]);
+    for(const r of [g,p,fp,kv,md]){ if(r.error) throw r.error; }
+    const kvMap={}; (kv.data||[]).forEach(r=>{ kvMap[r.id]=r.data; });
+    return {
+      gymnasts:(g.data||[]).map(r=>r.data),
+      programs:(p.data||[]).map(r=>r.data),
+      fullPrograms:(fp.data||[]).map(r=>r.data),
+      media:(md.data||[]).map(r=>r.data),
+      settings:kvMap["settings"]||null,
+      folders:kvMap["folders"]||null,
+      gymFolders:kvMap["gymFolders"]||null,
+      formation:kvMap["formation"]||null,
+    };
+  },
+  async upsert(store,obj){ if(!sb) return; const t=CLOUD_MAP[store]; const {error}=await sb.from(t).upsert({id:obj.id,data:obj,updated_at:new Date().toISOString()}); if(error) throw error; },
+  async upsertKV(key,val){ if(!sb) return; const {error}=await sb.from("coaching_kv").upsert({id:key,data:val,updated_at:new Date().toISOString()}); if(error) throw error; },
+  async remove(store,id){ if(!sb) return; const t=CLOUD_MAP[store]; const {error}=await sb.from(t).delete().eq("id",id); if(error) throw error; },
+  async upsertMedia(m){ if(!sb) return; const {error}=await sb.from("coaching_media").upsert({id:m.id,data:mediaMeta(m),updated_at:new Date().toISOString()}); if(error) throw error; },
+  async removeMediaRow(id){ if(!sb) return; const {error}=await sb.from("coaching_media").delete().eq("id",id); if(error) throw error; },
+  async uploadFile(path,file){ if(!sb) throw new Error("no client"); const {error}=await sb.storage.from(SUPA_BUCKET).upload(path,file,{contentType:file.type||"application/octet-stream",upsert:true}); if(error) throw error; return sb.storage.from(SUPA_BUCKET).getPublicUrl(path).data.publicUrl; },
+  async removeFile(path){ if(!sb || !path) return; try{ await sb.storage.from(SUPA_BUCKET).remove([path]); }catch(e){ console.warn("removeFile", e); } },
+};
+
+let _cloudBadge=null;
+function setCloudBadge(elm){ _cloudBadge=elm; paintCloudBadge(); }
+function paintCloudBadge(){
+  if(!_cloudBadge) return;
+  if(!CLOUD_ENABLED){ _cloudBadge.textContent="Local"; _cloudBadge.style.background="#6b7391"; _cloudBadge.title="Cloud desactive"; }
+  else if(Cloud.online){ _cloudBadge.textContent="\u2601 Cloud"; _cloudBadge.style.background="#2e9e5b"; _cloudBadge.title="Donnees synchronisees"; }
+  else { _cloudBadge.textContent="\u26a0 Hors-ligne"; _cloudBadge.style.background="#c8302f"; _cloudBadge.title="Pas de connexion au cloud"; }
+}
+function cloudOK(){ if(!Cloud.online){ Cloud.online=true; paintCloudBadge(); } }
+function cloudFail(e){ console.warn("cloud:", e); if(Cloud.online){ Cloud.online=false; paintCloudBadge(); } }
+function cloudPush(store,obj){ if(!CLOUD_ENABLED) return; Cloud.upsert(store,obj).then(cloudOK).catch(cloudFail); }
+function cloudPushKV(key,val){ if(!CLOUD_ENABLED) return; Cloud.upsertKV(key,val).then(cloudOK).catch(cloudFail); }
+function cloudRemove(store,id){ if(!CLOUD_ENABLED) return; Cloud.remove(store,id).then(cloudOK).catch(cloudFail); }
+function mediaMeta(m){ return {id:m.id, folder:m.folder, type:m.type, name:m.name, url:m.url||null, path:m.path||null, createdAt:m.createdAt||Date.now()}; }
+function cloudPushMedia(m){ if(!CLOUD_ENABLED) return; Cloud.upsertMedia(m).then(cloudOK).catch(cloudFail); }
+function cloudRemoveMedia(id,path){ if(!CLOUD_ENABLED) return; Cloud.removeFile(path); Cloud.removeMediaRow(id).then(cloudOK).catch(cloudFail); }
+
+async function pushAllToCloud(){
+  const jobs=[];
+  S.gymnasts.forEach(g=>jobs.push(Cloud.upsert("gymnasts",g)));
+  S.programs.forEach(p=>jobs.push(Cloud.upsert("programs",p)));
+  S.fullPrograms.forEach(p=>jobs.push(Cloud.upsert("fullPrograms",p)));
+  jobs.push(Cloud.upsertKV("settings",S.settings));
+  jobs.push(Cloud.upsertKV("folders",S.folders));
+  jobs.push(Cloud.upsertKV("gymFolders",S.gymFolders));
+  jobs.push(Cloud.upsertKV("formation",S.formation));
+  S.media.filter(m=>m.url).forEach(m=>jobs.push(Cloud.upsertMedia(m)));
+  await Promise.all(jobs);
+  Cloud.online=true; paintCloudBadge();
+}
+async function cacheToLocal(){
+  try{
+    await DB.clear("gymnasts"); await DB.clear("programs"); await DB.clear("fullPrograms");
+    for(const g of S.gymnasts) await DB.put("gymnasts",g);
+    for(const p of S.programs) await DB.put("programs",p);
+    for(const p of S.fullPrograms) await DB.put("fullPrograms",p);
+    await DB.put("kv",{id:"settings",value:S.settings});
+    await DB.put("kv",{id:"folders",value:S.folders});
+    await DB.put("kv",{id:"gymFolders",value:S.gymFolders});
+    await DB.put("kv",{id:"formation",value:S.formation});
+  }catch(e){ console.warn("cache local:", e); }
+}
+function normalizeFolders(arr){
+  let f = arr || JSON.parse(JSON.stringify(DEFAULT_FOLDERS));
+  if(f.length && typeof f[0]==="string"){ f = f.map(str=>({id:str, name:str.charAt(0).toUpperCase()+str.slice(1), parent:null})); }
+  DEFAULT_FOLDERS.forEach(d=>{ if(!f.some(x=>x.id===d.id)) f.push({...d}); });
+  return f;
+}
+
+/* ============================================================
+   State
+   ============================================================ */
+const S = {
+  role:null,                 // 'trainer' | 'admin'
+  settings:{...DEFAULT_SETTINGS},
+  folders:[...DEFAULT_FOLDERS],
+  logo:null,                 // objectURL
+  screen:'home',
+  params:{},
+  gymnasts:[], programs:[], fullPrograms:[], media:[],
+  gymFolders:[],             // dossiers de l'écran « Choisir votre programme »
+  formation:{folders:[],videos:[]},  // Formation : dossiers + liens YouTube
+};
+const objURLs = {};          // mediaId -> objectURL cache
+function mediaURL(id){
+  if(!id) return null;
+  const m = S.media.find(x=>x.id===id);
+  if(!m) return null;
+  if(m.url) return m.url;
+  if(objURLs[id]) return objURLs[id];
+  if(!m.blob) return null;
+  const u=URL.createObjectURL(m.blob); objURLs[id]=u; return u;
+}
+
+/* ============================================================
+   Folder helpers (hierarchie de dossiers)
+   ============================================================ */
+function folderById(id){ return S.folders.find(f=>f.id===id) || null; }
+function folderChildren(parentId){ const p=parentId||null; return S.folders.filter(f=>(f.parent||null)===p); }
+function folderChain(id){ const chain=[]; let cur=folderById(id); let guard=0; while(cur && guard++<50){ chain.unshift(cur); cur=cur.parent?folderById(cur.parent):null; } return chain; }
+function folderPathLabel(id){ return folderChain(id).map(f=>f.name).join(' › '); }
+function folderDescendantIds(id){ const out=[]; const rec=(pid)=>{ folderChildren(pid).forEach(c=>{ out.push(c.id); rec(c.id); }); }; rec(id); return out; }
+function mediaCountDeep(id){ const ids=[id,...folderDescendantIds(id)]; return S.media.filter(m=>ids.includes(m.folder)).length; }
+function isDefaultFolder(id){ return DEFAULT_FOLDER_IDS.includes(id); }
+function allFoldersSorted(){ return S.folders.slice().sort((a,b)=>folderPathLabel(a.id).localeCompare(folderPathLabel(b.id),'fr')); }
+
+/* ============================================================
+   Load / persist
+   ============================================================ */
+async function loadAll(){
+  // Logo + medias : toujours en local (les videos iront sur R2 a l'etape suivante)
+  const kvLogo = await DB.get("kv","logo");
+  if(kvLogo && kvLogo.blob){ S.logo = URL.createObjectURL(kvLogo.blob); }
+  const localMedia = await DB.all("media");
+
+  // Donnees locales (cache / secours hors-ligne)
+  const localGym  = await DB.all("gymnasts");
+  const localProg = await DB.all("programs");
+  const localFull = await DB.all("fullPrograms");
+  const kvS = await DB.get("kv","settings");
+  const kvF = await DB.get("kv","folders");
+  const localSettings = kvS ? kvS.value : null;
+  const localFolders  = kvF ? kvF.value : null;
+  const kvGF = await DB.get("kv","gymFolders");
+  const localGymFolders = kvGF ? kvGF.value : null;
+  const kvFo = await DB.get("kv","formation");
+  const localFormation = kvFo ? kvFo.value : null;
+
+  // Tentative cloud
+  let cloud=null;
+  if(CLOUD_ENABLED){ try{ cloud = await Cloud.pullEverything(); Cloud.online=true; }catch(e){ Cloud.online=false; console.warn("Cloud indisponible -> mode local", e); } }
+
+  if(cloud){
+    const cloudEmpty = !cloud.gymnasts.length && !cloud.programs.length && !cloud.fullPrograms.length && !cloud.settings && !cloud.folders;
+    const localHasData = localGym.length || localProg.length || localFull.length || localSettings || localFolders;
+    if(cloudEmpty && localHasData){
+      // Premiere fois : on pousse le contenu local vers le cloud
+      S.gymnasts=localGym; S.programs=localProg; S.fullPrograms=localFull;
+      S.settings = localSettings || {...DEFAULT_SETTINGS};
+      S.folders  = normalizeFolders(localFolders);
+      try{ await pushAllToCloud(); }catch(e){ console.warn("migration cloud echouee", e); }
+    } else {
+      S.gymnasts=cloud.gymnasts; S.programs=cloud.programs; S.fullPrograms=cloud.fullPrograms;
+      S.settings = cloud.settings ? {...DEFAULT_SETTINGS, ...cloud.settings} : {...DEFAULT_SETTINGS};
+      S.folders  = normalizeFolders(cloud.folders);
+      await cacheToLocal();
+    }
+  } else {
+    S.gymnasts=localGym; S.programs=localProg; S.fullPrograms=localFull;
+    S.settings = localSettings || {...DEFAULT_SETTINGS};
+    S.folders  = normalizeFolders(localFolders);
+  }
+
+  S.gymFolders = (cloud && cloud.gymFolders) || localGymFolders || [];
+  S.formation = normalizeFormation((cloud && cloud.formation) || localFormation);
+
+  // --- Medias : metadata cloud (URL) + blobs locaux pas encore envoyes ---
+  if(cloud){
+    const localBlobs={}; localMedia.forEach(m=>{ if(m.blob) localBlobs[m.id]=m.blob; });
+    const cloudMedia=(cloud.media||[]).map(m=> localBlobs[m.id] ? {...m, blob:localBlobs[m.id]} : m);
+    const cloudIds=new Set(cloudMedia.map(m=>m.id));
+    const localOnly=localMedia.filter(m=>!cloudIds.has(m.id));
+    S.media=cloudMedia.concat(localOnly);
+    try{ for(const m of S.media){ await DB.put("media", m); } }catch(e){ console.warn("cache media", e); }
+  } else {
+    S.media=localMedia;
+  }
+}
+const saveSettings = async () => { await DB.put('kv',{id:'settings',value:S.settings}); cloudPushKV('settings',S.settings); };
+const saveFolders  = async () => { await DB.put('kv',{id:'folders',value:S.folders}); cloudPushKV('folders',S.folders); };
+const saveFormation = async () => { await DB.put('kv',{id:'formation',value:S.formation}); cloudPushKV('formation',S.formation); };
+function normalizeFormation(f){
+  const out={folders:Array.isArray(f&&f.folders)?f.folders:[], videos:Array.isArray(f&&f.videos)?f.videos:[]};
+  DEFAULT_FOLDERS.forEach(d=>{ if(!out.folders.some(x=>x.id===d.id)) out.folders.push({...d}); });
+  return out;
+}
+const saveGymFolders = async () => { await DB.put('kv',{id:'gymFolders',value:S.gymFolders}); cloudPushKV('gymFolders',S.gymFolders); };
+/* Migration : anciens mots de passe en clair -> hash, puis suppression du clair */
+async function migratePasswords(){
+  let changed=false;
+  for(const [plain,h] of [['trainerPass','trainerHash'],['adminPass','adminHash']]){
+    if(S.settings[plain]){
+      if(!S.settings[h]) S.settings[h]=await hashPass(S.settings[plain]);
+      delete S.settings[plain]; changed=true;
+    }
+  }
+  if(changed) await saveSettings();
+}
+const saveGym  = async (g) => { await DB.put('gymnasts',g); cloudPush('gymnasts',g); return g; };
+const saveProg = async (p) => { await DB.put('programs',p); cloudPush('programs',p); return p; };
+const saveFull = async (p) => { await DB.put('fullPrograms',p); cloudPush('fullPrograms',p); return p; };
+
+/* ============================================================
+   Factories
+   ============================================================ */
+function newRow(){ return {repType:'mouvement', repetition:10, repMin:0, repSec:30, poidsType:'saisie', poids:'', execution:EXEC[1], recupMin:1, recupSec:0, recupForm:'passive', recupVideoId:null}; }
+/* Type de répétition d'une ligne : 'mouvement' | 'statique' (compat anciennes données) */
+function rowRepType(row){ return row.repType || 'mouvement'; }
+/* Type de poids d'une ligne : 'saisie' (poids chiffré) | 'corps' (poids de corps) */
+function rowPoidsType(row){ return row.poidsType || 'saisie'; }
+/* Forme de récup d'une ligne : 'passive' | 'active' | 'media' (compat anciennes données) */
+function rowRecupForm(row){ if(row.recupForm) return row.recupForm; return row.recupVideoId ? 'media' : 'passive'; }
+function newExercise(n){
+  return {
+    id:uid(), title:'Exercice '+n, videoId:null, consigne:'', objectif:'', series:3,
+    rows:[newRow(),newRow(),newRow()],
+    realisations:[{title:'Séance 1', values:[0,0,0]}]
+  };
+}
+function cloneExercise(ex,n){
+  const c=JSON.parse(JSON.stringify(ex)); c.id=uid();
+  if(n) c.title='Exercice '+n;
+  // fresh realisations on duplicate
+  c.realisations=[{title:'Séance 1', values:ex.rows.map(()=>0)}];
+  return c;
+}
+function setSeries(ex,count){
+  count=Math.max(1,count); ex.series=count;
+  while(ex.rows.length<count) ex.rows.push(newRow());
+  ex.rows.length=count;
+  ex.realisations.forEach(r=>{ while(r.values.length<count) r.values.push(0); r.values.length=count; });
+}
+
+/* ============================================================
+   Réordonnancement (drag & drop) — helpers
+   ============================================================ */
+/* Déplace un élément d'un tableau de l'index `from` vers `to`. */
+function arrayMove(arr, from, to){
+  if(from===to || from<0 || to<0 || from>=arr.length) return;
+  const [x]=arr.splice(from,1);
+  arr.splice(to,0,x);
+}
+/* Renumérote uniquement les titres par défaut « Exercice N » selon leur nouvelle position.
+   Les titres personnalisés sont préservés. */
+function renumberDefaultTitles(list){
+  list.forEach((ex,i)=>{ if(/^Exercice\s+\d+$/.test((ex.title||'').trim())) ex.title='Exercice '+(i+1); });
+}
+/* Rend une liste d'éléments réordonnable au doigt et à la souris (pointer events).
+   - container : élément parent
+   - itemSelector : sélecteur des blocs déplaçables (enfants directs)
+   - onReorder(from,to) : callback appelé après un déplacement effectif
+   La poignée de glissement porte l'attribut [data-drag-handle]. Délégation sur le
+   container => survit aux re-render internes des cartes. */
+function makeSortable(container, itemSelector, onReorder, opts={}){
+  let dragging=null, phantom=null, offsetY=0, startIndex=-1, dropTarget=null;
+  const getItems=()=>[...container.querySelectorAll(itemSelector)].filter(x=>x!==phantom);
+  function setDrop(t){
+    if(dropTarget===t) return;
+    if(dropTarget) dropTarget.classList.remove('drop-into');
+    dropTarget=t; if(t) t.classList.add('drop-into');
+  }
+
+  function onMove(e){
+    if(!dragging) return;
+    dragging.style.top=(e.clientY-offsetY)+'px';
+    const others=getItems().filter(x=>x!==dragging);
+    // Survol du centre d'un dossier => « ranger dedans » plutôt que réordonner
+    if(opts.dropTargetSelector){
+      const hit=others.find(o=>{
+        if(!o.matches(opts.dropTargetSelector)) return false;
+        if(opts.canDropInto && !opts.canDropInto(dragging,o)) return false;
+        const r=o.getBoundingClientRect();
+        return e.clientY>r.top+r.height*0.2 && e.clientY<r.bottom-r.height*0.2;
+      });
+      setDrop(hit||null);
+      if(hit) return;
+    }
+    let placed=false;
+    for(const o of others){
+      const r=o.getBoundingClientRect();
+      if(e.clientY < r.top + r.height/2){ container.insertBefore(phantom,o); placed=true; break; }
+    }
+    if(!placed) container.appendChild(phantom);
+  }
+  function onUp(){
+    if(!dragging) return;
+    document.removeEventListener('pointermove',onMove);
+    document.removeEventListener('pointerup',onUp);
+    document.removeEventListener('pointercancel',onUp);
+    const target=dropTarget; setDrop(null);
+    if(phantom){ container.insertBefore(dragging,phantom); phantom.remove(); }
+    dragging.classList.remove('drag-active');
+    dragging.removeAttribute('style');
+    const items=getItems();
+    const newIndex=items.indexOf(dragging);
+    const from=startIndex;
+    dragging=null; phantom=null; startIndex=-1;
+    if(target && opts.onDropInto){ opts.onDropInto(from,target); return; }
+    if(newIndex>=0 && newIndex!==from) onReorder(from,newIndex);
+  }
+  container.addEventListener('pointerdown', e=>{
+    const handle=e.target.closest('[data-drag-handle]');
+    if(!handle || !container.contains(handle)) return;
+    const item=handle.closest(itemSelector);
+    if(!item || item.parentNode!==container) return;
+    dragging=item;
+    startIndex=getItems().indexOf(item);
+    const rect=item.getBoundingClientRect();
+    offsetY=e.clientY-rect.top;
+    item.classList.add('drag-active');
+    phantom=document.createElement('div');
+    phantom.className='drag-placeholder';
+    phantom.style.height=rect.height+'px';
+    item.parentNode.insertBefore(phantom, item.nextSibling);
+    item.style.position='fixed';
+    item.style.zIndex='999';
+    item.style.width=rect.width+'px';
+    item.style.left=rect.left+'px';
+    item.style.top=rect.top+'px';
+    item.style.pointerEvents='none';
+    document.addEventListener('pointermove',onMove);
+    document.addEventListener('pointerup',onUp);
+    document.addEventListener('pointercancel',onUp);
+    e.preventDefault();
+  });
+}
+
+/* ============================================================
+   Progress feedback
+   ============================================================ */
+function exerciseFeedback(ex, colIndex){
+  // On ne compte que les lignes "mouvement" (les lignes statiques = temps, hors objectif de reps)
+  let target=0, done=0;
+  ex.rows.forEach((r,i)=>{
+    if((r.repType||'mouvement')==='mouvement'){
+      target += Number(r.repetition||0);
+      done   += Number(ex.realisations[colIndex].values[i]||0);
+    }
+  });
+  if(target<=0) return null;
+  const pct = done/target*100;
+  if(done>=target) return {cls:'fb-bravo', text:'🎉 Bravo, tu as réussi ton objectif — appelle ton entraîneur !'};
+  if(pct<=60)      return {cls:'fb-low',  text:'Petite forme aujourd’hui… il faut se ressaisir !'};
+  if(pct<=70)      return {cls:'fb-mid',  text:'Encore une belle marge de progression, c’est bien, continue.'};
+  if(pct<=80)      return {cls:'fb-high', text:'Tu te rapproches de l’objectif.'};
+  if(pct<=90)      return {cls:'fb-high', text:'Rendez-vous à la prochaine, pour atteindre l’objectif !'};
+  return {cls:'fb-high', text:'Tout proche de l’objectif — encore un petit effort !'};
+}
+
+/* ============================================================
+   Tiny DOM helpers
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const el = (html) => { const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; };
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),1900); }
+function esc(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- Navigation ---------- */
+function nav(screen,params={}){ S.screen=screen; S.params=params; window.scrollTo(0,0); render(); }
+
+/* ============================================================
+   Modals
+   ============================================================ */
+function closeModal(){ $('#modal-root').innerHTML=''; }
+function modal(title, bodyNode, {wide}={}){
+  const root=$('#modal-root');
+  const ov=el(`<div class="overlay"><div class="modal" style="${wide?'max-width:760px':''}">
+    <div class="m-head"><h3>${esc(title)}</h3><button class="m-close">×</button></div>
+    <div class="m-body"></div></div></div>`);
+  ov.querySelector('.m-body').appendChild(bodyNode);
+  ov.querySelector('.m-close').onclick=closeModal;
+  ov.addEventListener('click',e=>{ if(e.target===ov) closeModal(); });
+  root.innerHTML=''; root.appendChild(ov);
+}
+function promptModal(title,label,{value='',placeholder='',onOk,okText='Valider',type='text'}={}){
+  const body=el(`<div>
+    <label class="fld">${esc(label)}</label>
+    <input class="inp" type="${type}" value="${esc(value)}" placeholder="${esc(placeholder)}">
+    <div class="spacer"></div>
+    <div class="btnrow" style="justify-content:flex-end">
+      <button class="btn ghost" data-x>Annuler</button>
+      <button class="btn" data-ok>${esc(okText)}</button>
+    </div></div>`);
+  const inp=body.querySelector('input');
+  body.querySelector('[data-x]').onclick=closeModal;
+  const go=()=>{ const v=inp.value.trim(); if(!v) return inp.focus(); onOk&&onOk(v); };
+  body.querySelector('[data-ok]').onclick=go;
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+  modal(title,body);
+  setTimeout(()=>inp.focus(),50);
+}
+function confirmModal(title,text,onYes,{yesText='Supprimer',danger=true}={}){
+  const body=el(`<div><p style="margin:0 0 16px">${esc(text)}</p>
+    <div class="btnrow" style="justify-content:flex-end">
+      <button class="btn ghost" data-x>Annuler</button>
+      <button class="btn ${danger?'danger':''}" data-y>${esc(yesText)}</button></div></div>`);
+  body.querySelector('[data-x]').onclick=closeModal;
+  body.querySelector('[data-y]').onclick=()=>{ closeModal(); onYes&&onYes(); };
+  modal(title,body);
+}
+
+/* ============================================================
+   RENDER: root
+   ============================================================ */
+function render(){
+  const app=$('#app');
+  if(S.screen==='home'){ app.innerHTML=''; app.appendChild(renderHome()); return; }
+  // shell
+  const shell=el(`<div>
+    <div class="topbar">
+      <div class="brand">Coaching Dine<span>entraînement</span></div>
+      <span class="cloudb" style="font-size:11px;font-weight:700;color:#fff;padding:3px 9px;border-radius:999px;background:#6b7391;margin-left:8px"></span>
+      <div class="role"></div>
+    </div>
+    <div class="wrap" id="wrap"></div>
+  </div>`);
+  shell.querySelector('.role').textContent = S.role==='admin'?'Administrateur':'Entraîneur';
+  const roleBadge=shell.querySelector('.role');
+  roleBadge.style.cursor='pointer'; roleBadge.title='Quitter';
+  roleBadge.onclick=()=>{ S.role=null; nav('home'); };
+  setCloudBadge(shell.querySelector('.cloudb'));
+  const wrap=shell.querySelector('#wrap');
+  const view = ROUTES[S.screen] ? ROUTES[S.screen]() : el('<div>Écran inconnu</div>');
+  wrap.appendChild(view);
+  app.innerHTML=''; app.appendChild(shell);
+}
+
+/* back / crumbs helper */
+function header(title, sub, crumbTrail){
+  const c = el(`<div>
+    <div class="crumbs"></div>
+    <h1>${esc(title)}</h1>
+    ${sub?`<p class="sub">${esc(sub)}</p>`:''}
+  </div>`);
+  const cr=c.querySelector('.crumbs');
+  (crumbTrail||[]).forEach((it,i)=>{
+    if(i>0) cr.appendChild(el('<span>›</span>'));
+    if(it.to){ const b=el(`<b style="cursor:pointer">${esc(it.label)}</b>`); b.onclick=it.to; cr.appendChild(b); }
+    else cr.appendChild(el(`<span>${esc(it.label)}</span>`));
+  });
+  return c;
+}
+
+/* ============================================================
+   HOME
+   ============================================================ */
+function renderHome(){
+  const node=el(`<div class="home">
+    <div class="logo"></div>
+    <div class="entries">
+      <button data-trainer>Entrée entraîneur</button>
+      <button class="admin" data-admin>Entrée administrateur</button>
+    </div>
+  </div>`);
+  const logo=node.querySelector('.logo');
+  const src = S.logo || LOGO_DATA;
+  logo.appendChild(el(`<img src="${src}" alt="Coaching Dine">`));
+  node.querySelector('[data-trainer]').onclick=()=>askPass('trainer');
+  node.querySelector('[data-admin]').onclick=()=>askPass('admin');
+  return node;
+}
+function askPass(role){
+  const key = role==='admin'?'adminHash':'trainerHash';
+  const first = !S.settings[key];
+  const label = first
+    ? (role==='admin'?'Définis le mot de passe administrateur':'Définis le mot de passe entraîneur')
+    : (role==='admin'?'Mot de passe administrateur':'Mot de passe entraîneur');
+  promptModal(role==='admin'?'Administrateur':'Entraîneur', label, {
+    type:'password', placeholder:'••••••••', okText:first?'Enregistrer':'Entrer',
+    onOk:async(v)=>{
+      const h=await hashPass(v);
+      if(first){ S.settings[key]=h; await saveSettings(); toast('Mot de passe enregistré'); }
+      else if(h!==S.settings[key]){ toast('Mot de passe incorrect'); return; }
+      closeModal(); S.role=role;
+      nav(role==='admin'?'admin':'trainerHome');
+    }
+  });
+}
+
+/* ============================================================
+   TRAINER HOME
+   ============================================================ */
+function trainerHome(){
+  const n=el('<div></div>');
+  n.appendChild(header('Espace entraîneur','Que veux-tu faire ?',[{label:'Accueil'}]));
+  const tiles=el(`<div class="tiles three">
+    <button class="tile" data-gyms><div class="em">🤸‍♀️</div><div class="t">Choisir votre programme</div>
+      <div class="d">Ouvrir un programme, lancer ou poursuivre une séance</div></button>
+    <button class="tile" data-build><div class="em">🧩</div><div class="t">Construire une séance</div>
+      <div class="d">Programmes par agrès, médiathèque</div></button>
+    <button class="tile" data-formation><div class="em">🎓</div><div class="t">Formation</div>
+      <div class="d">Vidéos de formation YouTube par agrès, médiathèque</div></button>
+  </div>`);
+  tiles.querySelector('[data-gyms]').onclick=()=>nav('gyms');
+  tiles.querySelector('[data-build]').onclick=()=>nav('build');
+  tiles.querySelector('[data-formation]').onclick=()=>nav('formation');
+  n.appendChild(tiles);
+  return n;
+}
+
+/* ============================================================
+   CHOISIR VOTRE PROGRAMME (liste + dossiers, glisser-déposer)
+   ============================================================ */
+const byOrder=(a,b)=>((a.order??0)-(b.order??0)) || String(a.name).localeCompare(String(b.name),'fr');
+function gymFolderById(id){ return S.gymFolders.find(f=>f.id===id)||null; }
+function gymFolderOf(g){ return (g.folderId && gymFolderById(g.folderId)) ? g.folderId : null; }
+function gymsInFolder(fid){ return S.gymnasts.filter(g=>gymFolderOf(g)===(fid||null)).sort(byOrder); }
+function nextOrder(){ return Math.max(-1,...S.gymnasts.map(g=>g.order??0),...S.gymFolders.map(f=>f.order??0))+1; }
+/* Première fois : fige l'ordre alphabétique actuel pour permettre le glisser-déposer */
+function ensureGymOrder(){
+  if(S.gymnasts.some(g=>typeof g.order!=='number')){
+    S.gymnasts.slice().sort((a,b)=>a.name.localeCompare(b.name,'fr')).forEach((g,i)=>{
+      if(typeof g.order!=='number'){ g.order=i; saveGym(g); }
+    });
+  }
+}
+function moveGymModal(g, backParams){
+  const b=el(`<div><label class="fld">Ranger « ${esc(g.name)} » dans</label>
+    <select class="inp"><option value="">— Aucun dossier (liste principale) —</option>
+    ${S.gymFolders.slice().sort(byOrder).map(f=>`<option value="${f.id}" ${gymFolderOf(g)===f.id?'selected':''}>📁 ${esc(f.name)}</option>`).join('')}</select>
+    <div class="spacer"></div><div class="btnrow" style="justify-content:flex-end">
+    <button class="btn ghost" data-x>Annuler</button><button class="btn" data-ok>Déplacer</button></div></div>`);
+  b.querySelector('[data-x]').onclick=closeModal;
+  b.querySelector('[data-ok]').onclick=async()=>{
+    const v=b.querySelector('select').value||null;
+    if(v!==gymFolderOf(g)){ g.folderId=v; g.order=nextOrder(); await saveGym(g); }
+    closeModal(); nav('gyms',backParams);
+  };
+  modal('Déplacer le programme',b);
+}
+function gymsScreen(){
+  ensureGymOrder();
+  const fid=S.params.gf||null;
+  const folder=fid?gymFolderById(fid):null;
+  const here=folder?{gf:folder.id}:{};
+  const n=el('<div></div>');
+  const crumbs=[
+    {label:'Accueil',to:()=>{S.role=null;nav('home');}},
+    {label:'Entraîneur',to:()=>nav('trainerHome')},
+  ];
+  if(folder){ crumbs.push({label:'Les programmes',to:()=>nav('gyms')}); crumbs.push({label:folder.name}); }
+  else crumbs.push({label:'Les programmes'});
+  n.appendChild(header(folder?('📁 '+folder.name):'Choisir votre programme', null, crumbs));
+
+  const bar=el(`<div class="btnrow" style="margin-bottom:14px">
+    ${folder?'<button class="btn line" data-back>‹ Retour</button>':''}
+    <button class="btn" data-add>＋ Ajouter votre programme</button>
+    ${folder?'<button class="btn ghost" data-ren>Renommer le dossier</button>':'<button class="btn ghost" data-addf>📁 Créer un dossier</button>'}
+  </div>`);
+  const back=bar.querySelector('[data-back]'); if(back) back.onclick=()=>nav('gyms');
+  bar.querySelector('[data-add]').onclick=()=>{
+    promptModal('Nouveau programme','Nom du programme',{placeholder:'ex. LUNDI',okText:'Ajouter',onOk:async(name)=>{
+      const g={id:uid(),name,folderId:fid,order:nextOrder(),sessions:[],sessionsOrdered:true,createdAt:Date.now()};
+      await saveGym(g); S.gymnasts.push(g); closeModal(); toast('Programme ajouté'); nav('gyms',here);
+    }});
+  };
+  const addf=bar.querySelector('[data-addf]');
+  if(addf) addf.onclick=()=>promptModal('Nouveau dossier','Nom du dossier',{placeholder:'ex. Préparation générale',okText:'Créer',onOk:async(name)=>{
+    S.gymFolders.push({id:uid(),name,order:nextOrder()}); await saveGymFolders(); closeModal(); toast('Dossier créé'); nav('gyms');
+  }});
+  const ren=bar.querySelector('[data-ren]');
+  if(ren) ren.onclick=()=>promptModal('Renommer le dossier','Nom du dossier',{value:folder.name,okText:'Renommer',onOk:async(v)=>{
+    folder.name=v; await saveGymFolders(); closeModal(); nav('gyms',here);
+  }});
+  n.appendChild(bar);
+
+  // Éléments affichés : à la racine = dossiers + programmes hors dossier ; dans un dossier = ses programmes
+  const entries = folder
+    ? gymsInFolder(fid).map(g=>({kind:'gym',obj:g}))
+    : [...S.gymFolders.map(f=>({kind:'folder',obj:f})), ...gymsInFolder(null).map(g=>({kind:'gym',obj:g}))]
+        .sort((a,b)=>byOrder(a.obj,b.obj));
+
+  if(!entries.length){
+    n.appendChild(el(folder
+      ? '<div class="empty">Dossier vide.<br>Glisse un programme sur ce dossier depuis la liste principale, ou utilise « Déplacer ».</div>'
+      : '<div class="empty">Aucun programme pour l’instant.<br>Ajoute un premier programme pour commencer.</div>'));
+    return n;
+  }
+  n.appendChild(el(`<p class="muted" style="margin-top:-4px;font-size:12.5px">Glisse la poignée ⠿ pour changer l’ordre${folder?'':' — lâche un programme sur un dossier pour l’y ranger'}.</p>`));
+
+  const list=el('<div class="gym-list"></div>');
+  entries.forEach(({kind,obj})=>{
+    if(kind==='folder'){
+      const f=obj, nb=gymsInFolder(f.id).length;
+      const it=el(`<div class="list-item sort-item gl-item gl-folder" data-fid="${f.id}">
+        <span class="drag-handle" data-drag-handle title="Glisser pour déplacer">⠿</span>
+        <div class="grow"><div class="name">📁 ${esc(f.name)}</div><div class="meta">${nb} programme(s)</div></div>
+        <button class="btn sm" data-open>Ouvrir</button>
+        <button class="btn sm danger" data-del>Suppr.</button>
+      </div>`);
+      it.querySelector('[data-open]').onclick=()=>nav('gyms',{gf:f.id});
+      it.querySelector('[data-del]').onclick=()=>confirmModal('Supprimer le dossier',`Supprimer le dossier « ${f.name} » ? Les programmes qu’il contient reviennent dans la liste principale (rien n’est effacé).`,async()=>{
+        for(const g of gymsInFolder(f.id)){ g.folderId=null; g.order=nextOrder(); await saveGym(g); }
+        S.gymFolders=S.gymFolders.filter(x=>x.id!==f.id); await saveGymFolders(); toast('Dossier supprimé'); nav('gyms');
+      });
+      list.appendChild(it);
+    } else {
+      const g=obj; ensureSessions(g);
+      const nb=g.sessions.length;
+      const it=el(`<div class="list-item sort-item gl-item gl-gym">
+        <span class="drag-handle" data-drag-handle title="Glisser pour déplacer">⠿</span>
+        <div class="name grow">${esc(g.name)}</div>
+        <div class="meta">${nb?nb+' séance(s)':'—'}</div>
+        <button class="btn sm" data-open>Ouvrir</button>
+        ${(S.gymFolders.length||folder)?'<button class="btn sm ghost" data-move>Déplacer</button>':''}
+        <button class="btn sm danger" data-del>Suppr.</button>
+      </div>`);
+      it.querySelector('[data-open]').onclick=()=>nav('gymProfile',{id:g.id});
+      const mv=it.querySelector('[data-move]'); if(mv) mv.onclick=()=>moveGymModal(g,here);
+      it.querySelector('[data-del]').onclick=()=>confirmModal('Supprimer',`Supprimer le programme « ${g.name} » et ses séances ?`,async()=>{
+        await DB.del('gymnasts',g.id); cloudRemove('gymnasts',g.id); S.gymnasts=S.gymnasts.filter(x=>x.id!==g.id); toast('Supprimé'); nav('gyms',here);
+      });
+      list.appendChild(it);
+    }
+  });
+  n.appendChild(list);
+
+  makeSortable(list,'.gl-item',
+    (from,to)=>{
+      arrayMove(entries,from,to);
+      let foldersChanged=false;
+      entries.forEach((e,i)=>{
+        if(e.obj.order===i) return;
+        e.obj.order=i;
+        if(e.kind==='gym') saveGym(e.obj); else foldersChanged=true;
+      });
+      if(foldersChanged) saveGymFolders();
+      nav('gyms',here);
+    },
+    {
+      dropTargetSelector:'.gl-folder',
+      canDropInto:(dragEl)=>dragEl.classList.contains('gl-gym'),
+      onDropInto:async(from,target)=>{
+        const e=entries[from]; if(!e || e.kind!=='gym') return;
+        const f=gymFolderById(target.dataset.fid); if(!f) return;
+        e.obj.folderId=f.id; e.obj.order=nextOrder(); await saveGym(e.obj);
+        toast('« '+e.obj.name+' » rangé dans '+f.name); nav('gyms');
+      }
+    });
+  return n;
+}
+
+/* ============================================================
+   GYM PROFILE — 3 onglets
+   ============================================================ */
+function gymProfile(){
+  const g=S.gymnasts.find(x=>x.id===S.params.id);
+  const n=el('<div></div>');
+  if(!g){ n.appendChild(header('Introuvable')); return n; }
+  const tab = S.params.tab || 'poursuivre';
+  n.appendChild(header(g.name, null,[
+    {label:'Entraîneur',to:()=>nav('trainerHome')},
+    {label:'Les programmes',to:()=>nav('gyms')},
+    ...(gymFolderOf(g)?[{label:'📁 '+gymFolderById(g.folderId).name,to:()=>nav('gyms',{gf:g.folderId})}]:[]),
+    {label:g.name}
+  ]));
+
+  const tabs=el(`<div class="pill-tabs">
+    <button data-t="poursuivre">Poursuivre le programme</button>
+    <button data-t="nouveau">Nouveaux programmes</button>
+  </div>`);
+  tabs.querySelectorAll('button').forEach(b=>{
+    if(b.dataset.t===tab) b.classList.add('on');
+    b.onclick=()=>nav('gymProfile',{id:g.id,tab:b.dataset.t});
+  });
+  n.appendChild(tabs);
+
+  if(tab==='poursuivre') n.appendChild(tabPoursuivre(g));
+  else n.appendChild(tabNouveau(g));
+  return n;
+}
+
+/* -- Poursuivre : dernière séance saisie -- */
+function tabPoursuivre(g){
+  ensureSessions(g);
+  const n=el('<div></div>');
+
+  // --- Vue d'une séance précise ---
+  if(S.params.sess){
+    const sess=g.sessions.find(s=>s.id===S.params.sess);
+    if(sess){
+      const back=el('<button class="btn line" style="margin-bottom:10px">‹ Toutes les séances</button>');
+      back.onclick=()=>nav('gymProfile',{id:g.id,tab:'poursuivre'});
+      n.appendChild(back);
+      const dateStr=new Date(sess.startedAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+      n.appendChild(el(`<p class="muted" style="margin-top:2px">${sess.archived
+          ? 'Séance archivée du '+dateStr+' — tes résultats sont conservés.'
+          : 'Séance du '+dateStr+'. Les données saisies sont conservées.'}</p>`));
+      n.appendChild(renderSession(g, sess));
+      return n;
+    }
+  }
+
+  // --- Liste des séances ---
+  if(!g.sessions.length){
+    n.appendChild(el('<div class="empty">Aucune séance pour l’instant.<br>L’entraîneur peut t’en envoyer, ou démarres-en une dans « Nouveaux programmes ».</div>'));
+    return n;
+  }
+  n.appendChild(el('<p class="muted" style="margin-top:-4px">Choisis une séance à suivre. Glisse la poignée ⠿ pour changer l’ordre.</p>'));
+
+  const active   = g.sessions.filter(s=>!s.archived);
+  const archived = g.sessions.filter(s=> s.archived);
+
+  // Construit une ligne de séance (avec poignée de glissement)
+  function sessItem(sess){
+    const names=sess.items.map(it=>it.programName).join(', ')||'Séance';
+    const nbExo=sess.items.reduce((s,it)=>s+it.exercises.length,0);
+    const dateStr=new Date(sess.startedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+    const it=el(`<div class="list-item sess-item sort-item">
+      <span class="drag-handle" data-drag-handle title="Glisser pour déplacer">⠿</span>
+      <div class="grow"><div class="name">${esc(names)}</div>
+        <div class="meta">${nbExo} exo · ${dateStr}${sess.archived?' · archivée':''}</div></div>
+      <button class="btn sm" data-open>Ouvrir</button>
+      <button class="btn sm danger" data-del>Suppr.</button>
+    </div>`);
+    it.querySelector('[data-open]').onclick=()=>nav('gymProfile',{id:g.id,tab:'poursuivre',sess:sess.id});
+    it.querySelector('[data-del]').onclick=()=>confirmModal('Supprimer','Supprimer cette séance et ses résultats ?',async()=>{
+      g.sessions=g.sessions.filter(s=>s.id!==sess.id); await saveGym(g); nav('gymProfile',{id:g.id,tab:'poursuivre'});
+    });
+    return it;
+  }
+  // Sauvegarde le nouvel ordre : on recolle actives + archivées dans g.sessions
+  function persistOrder(){
+    g.sessions=[...active,...archived];
+    saveGym(g);
+    nav('gymProfile',{id:g.id,tab:'poursuivre'});
+  }
+
+  // --- Séances actives (réordonnables) ---
+  const activeBox=el('<div class="sess-group"></div>');
+  active.forEach(s=>activeBox.appendChild(sessItem(s)));
+  n.appendChild(activeBox);
+  makeSortable(activeBox,'.sess-item',(from,to)=>{ arrayMove(active,from,to); persistOrder(); });
+
+  // --- Séances archivées (réordonnables aussi) ---
+  if(archived.length){
+    n.appendChild(el('<div class="muted" style="font-size:12.5px;margin:18px 0 6px">Séances archivées</div>'));
+    const archBox=el('<div class="sess-group"></div>');
+    archived.forEach(s=>archBox.appendChild(sessItem(s)));
+    n.appendChild(archBox);
+    makeSortable(archBox,'.sess-item',(from,to)=>{ arrayMove(archived,from,to); persistOrder(); });
+  }
+  return n;
+}
+
+/* -- Nouveaux programmes : agrès -> choix multiple -> démarrer -- */
+function tabNouveau(g){
+  const n=el('<div></div>');
+  n.appendChild(el('<p class="muted" style="margin-top:-4px">Choisis un ou plusieurs programmes par agrès (comme au restaurant), puis démarre la séance.</p>'));
+  // selection state kept on the gymnast object (draft)
+  g._draft = g._draft || {};   // {apparatus: [programId,...]}
+  const tabs=el(`<div class="apparatus-tabs"></div>`);
+  APPARATUS.forEach(a=>{
+    const count=(g._draft[a.key]||[]).length;
+    const t=el(`<button class="atab ${a.cls}">${a.label}<small>${count?count+' choisi(s)':'choisir'}</small></button>`);
+    t.onclick=()=>openApparatusPicker(g,a.key);
+    tabs.appendChild(t);
+  });
+  n.appendChild(tabs);
+
+  // summary of current draft
+  const total=Object.values(g._draft).reduce((s,arr)=>s+arr.length,0);
+  const sum=el('<div class="card"></div>');
+  if(!total){ sum.appendChild(el('<div class="muted">Aucun programme sélectionné pour l’instant.</div>')); }
+  else{
+    APPARATUS.forEach(a=>{
+      const ids=g._draft[a.key]||[]; if(!ids.length) return;
+      const names=ids.map(id=>S.programs.find(p=>p.id===id)?.name||'?');
+      sum.appendChild(el(`<div class="flex" style="margin-bottom:8px">
+        <span class="chip" style="background:${a.chip}">${a.label}</span>
+        <span class="grow">${names.map(esc).join(', ')}</span></div>`));
+    });
+  }
+  n.appendChild(sum);
+
+  const bar=el(`<div class="selbar"><div class="rowbtns">
+    <button class="btn g grow" data-start ${total?'':'disabled'} style="${total?'':'opacity:.5'}">▶ Démarrer la séance</button>
+  </div></div>`);
+  bar.querySelector('[data-start]').onclick=()=>{ if(!total) return; startSession(g,g._draft); };
+  n.appendChild(bar);
+  return n;
+}
+
+function openApparatusPicker(g,appKey){
+  const meta=APP_META[appKey];
+  const progs=S.programs.filter(p=>p.apparatus===appKey);
+  const selected=new Set(g._draft[appKey]||[]);
+  const body=el('<div></div>');
+  if(!progs.length){
+    body.appendChild(el(`<div class="empty">Aucun programme « ${meta.label} » créé.<br>Crée-le dans « Construire une séance ».</div>`));
+  }else{
+    progs.forEach(p=>{
+      const it=el(`<div class="list-item selectable">
+        <div class="name">${esc(p.name)}</div>
+        <div class="meta">${p.exercises.length} exo</div>
+        <div class="check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff"></div>
+      </div>`);
+      const paint=()=>{
+        const on=selected.has(p.id);
+        it.classList.toggle('sel',on);
+        const c=it.querySelector('.check');
+        c.style.background=on?meta.chip:'#fff'; c.style.borderColor=on?meta.chip:'var(--line)';
+        c.textContent=on?'✓':'';
+      };
+      it.onclick=()=>{ selected.has(p.id)?selected.delete(p.id):selected.add(p.id); paint(); };
+      paint(); body.appendChild(it);
+    });
+  }
+  const foot=el(`<div class="btnrow" style="justify-content:flex-end;margin-top:12px">
+    <button class="btn ghost" data-x>Fermer</button>
+    <button class="btn" data-ok>Valider</button></div>`);
+  foot.querySelector('[data-x]').onclick=closeModal;
+  foot.querySelector('[data-ok]').onclick=()=>{ g._draft[appKey]=[...selected]; closeModal(); nav('gymProfile',{id:g.id,tab:'nouveau'}); };
+  body.appendChild(foot);
+  modal(meta.label+' — choisir les programmes',body);
+}
+
+/* -- Programmes complets (côté gym) -- */
+function tabComplets(g){
+  const n=el('<div></div>');
+  n.appendChild(el('<p class="muted" style="margin-top:-4px">Séances toutes faites par l’entraîneur.</p>'));
+  if(!S.fullPrograms.length){ n.appendChild(el('<div class="empty">Aucun programme complet créé pour l’instant.</div>')); return n; }
+  S.fullPrograms.forEach(p=>{
+    const it=el(`<div class="list-item">
+      <div class="name">${esc(p.name)}</div><div class="meta">${p.exercises.length} exo</div>
+      <button class="btn sm g" data-start>▶ Démarrer</button>
+      <button class="btn sm danger" data-del>Suppr.</button></div>`);
+    it.querySelector('[data-start]').onclick=()=>{
+      const items=[{apparatus:'complet',programName:p.name,consignesGenerales:p.consignesGenerales||'',exercises:p.exercises.map(e=>cloneExercise(e))}];
+      commitSession(g,items);
+    };
+    it.querySelector('[data-del]').onclick=()=>confirmModal('Supprimer',`Supprimer le programme complet « ${p.name} » ? Il sera retiré pour toutes les gyms.`,async()=>{
+      await DB.del('fullPrograms',p.id); cloudRemove('fullPrograms',p.id); S.fullPrograms=S.fullPrograms.filter(x=>x.id!==p.id); nav('gymProfile',{id:g.id,tab:'complets'});
+    });
+    n.appendChild(it);
+  });
+  return n;
+}
+
+/* ---------- Sessions (plusieurs séances par gym) ---------- */
+/* Migration : convertit l'ancien modèle (g.session + g.history) en g.sessions[] */
+function ensureSessions(g){
+  if(!Array.isArray(g.sessions)){
+    g.sessions=[];
+    if(g.session){ g.sessions.push({id:uid(), archived:false, startedAt:g.session.startedAt||Date.now(), items:g.session.items||[]}); }
+    if(Array.isArray(g.history)){ g.history.forEach(h=>g.sessions.push({id:uid(), archived:true, startedAt:h.startedAt||Date.now(), endedAt:h.endedAt||Date.now(), items:h.items||[]})); }
+    delete g.session; delete g.history;
+    saveGym(g);
+  }
+  // Ordre manuel : une seule fois, on fige l'ordre d'affichage actuel
+  // (séances actives d'abord, puis les plus récentes) pour que le
+  // glisser-déposer puisse ensuite réordonner librement la liste.
+  if(!g.sessionsOrdered){
+    g.sessions.sort((a,b)=>((a.archived?1:0)-(b.archived?1:0)) || (b.startedAt-a.startedAt));
+    g.sessionsOrdered=true;
+    saveGym(g);
+  }
+  return g.sessions;
+}
+function startSession(g,draft){
+  const items=[];
+  APPARATUS.forEach(a=>{
+    (draft[a.key]||[]).forEach(pid=>{
+      const p=S.programs.find(x=>x.id===pid); if(!p) return;
+      items.push({apparatus:a.key, programName:p.name, consignesGenerales:p.consignesGenerales||'', exercises:p.exercises.map(e=>cloneExercise(e))});
+    });
+  });
+  commitSession(g,items);
+}
+async function commitSession(g,items){
+  ensureSessions(g);
+  const sess={id:uid(), archived:false, startedAt:Date.now(), items};
+  g.sessions.unshift(sess);
+  g._draft={};
+  await saveGym(g);
+  nav('gymProfile',{id:g.id,tab:'poursuivre',sess:sess.id});
+  toast('Séance ajoutée');
+}
+/* Envoyer un programme à une ou plusieurs gyms (apparait dans "Poursuivre le programme") */
+function sendProgramModal(progName, buildItem){
+  const gyms=S.gymnasts.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const selected=new Set();
+  const body=el('<div></div>');
+  if(!gyms.length){
+    body.appendChild(el('<div class="empty">Aucun programme créé.<br>Ajoute-en dans « Choisir votre programme ».</div>'));
+  } else {
+    body.appendChild(el(`<p class="muted" style="margin-top:0">Sélectionne les programmes qui recevront « ${esc(progName)} » dans « Poursuivre le programme ».</p>`));
+    gyms.forEach(g=>{
+      const it=el(`<div class="list-item selectable">
+        <div class="name grow">${esc(g.name)}</div>
+        <div class="check" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff"></div>
+      </div>`);
+      const paint=()=>{ const on=selected.has(g.id); it.classList.toggle('sel',on); const c=it.querySelector('.check'); c.style.background=on?'var(--ok)':'#fff'; c.style.borderColor=on?'var(--ok)':'var(--line)'; c.textContent=on?'✓':''; };
+      it.onclick=()=>{ selected.has(g.id)?selected.delete(g.id):selected.add(g.id); paint(); };
+      paint(); body.appendChild(it);
+    });
+  }
+  const foot=el(`<div class="btnrow" style="justify-content:flex-end;margin-top:12px">
+    <button class="btn ghost" data-x>Annuler</button>
+    <button class="btn" data-ok>Envoyer</button></div>`);
+  foot.querySelector('[data-x]').onclick=closeModal;
+  foot.querySelector('[data-ok]').onclick=async()=>{
+    if(!selected.size){ toast('Sélectionne au moins un programme'); return; }
+    let added=0, already=0;
+    for(const gid of selected){
+      const g=S.gymnasts.find(x=>x.id===gid); if(!g) continue;
+      ensureSessions(g);
+      const item=buildItem();
+      const has=g.sessions.some(s=>!s.archived && s.items.some(it=>it.programName===item.programName && it.apparatus===item.apparatus));
+      if(has){ already++; continue; }
+      g.sessions.unshift({id:uid(), archived:false, startedAt:Date.now(), items:[item]});
+      await saveGym(g); added++;
+    }
+    closeModal();
+    toast('Envoyé à '+added+' programme(s)'+(already?' — '+already+' déjà':''));
+  };
+  body.appendChild(foot);
+  modal('Envoyer à…', body);
+}
+
+/* ============================================================
+   SESSION VIEW (gymnaste saisit ses réalisations)
+   ============================================================ */
+function renderSession(g, sess){
+  sess = sess || (g.sessions && g.sessions[0]);
+  const n=el('<div></div>');
+  let backfilled=false;
+  // Retrouve le programme d'origine (pour objectif, consigne, consignes générales)
+  const sourceProgramFor=(item)=>{
+    if(item.apparatus==='complet') return S.fullPrograms.find(p=>p.name===item.programName)||null;
+    return S.programs.find(p=>p.name===item.programName && p.apparatus===item.apparatus)||null;
+  };
+  const sourceExerciseFor=(item,ex)=>{
+    const prog=sourceProgramFor(item);
+    if(!prog) return null;
+    return prog.exercises.find(e=>e.title===ex.title) || null;
+  };
+  sess.items.forEach((item,ii)=>{
+    const meta = item.apparatus==='complet' ? {label:'Programme complet',chip:'var(--ink)'} : APP_META[item.apparatus];
+    n.appendChild(el(`<div class="flex" style="margin:14px 0 8px">
+      <span class="chip" style="background:${meta.chip}">${esc(meta.label)}</span>
+      <b class="grow">${esc(item.programName)}</b></div>`));
+    // Consignes générales (synchro live depuis le programme d'origine)
+    {
+      const srcProg=sourceProgramFor(item);
+      const cg=(srcProg && srcProg.consignesGenerales) || item.consignesGenerales || '';
+      if(cg) n.appendChild(el(`<div class="objectif-box" style="background:#eef3fe;border-color:#cfe0fb;color:#254a86">📋 <b>Consignes :</b> ${esc(cg)}</div>`));
+    }
+    // Groupe réordonnable : chaque exercice est glissable (poignée ⠿)
+    const group=el('<div class="sort-group"></div>');
+    item.exercises.forEach(ex=>{
+      // Synchro avec le programme d'origine : l'objectif suit toujours la dernière valeur
+      // (la consigne n'est complétée que si elle est vide côté gym)
+      {
+        const src=sourceExerciseFor(item,ex);
+        if(src){
+          if((ex.objectif||'')!==(src.objectif||'')){ ex.objectif=src.objectif||''; backfilled=true; }
+          if(!ex.consigne && src.consigne){ ex.consigne=src.consigne; backfilled=true; }
+        }
+      }
+      const wrap=el('<div class="sort-item"></div>');
+      wrap.appendChild(renderExerciseCard(ex,{mode:'session', dragHandle:true, onChange:()=>saveGym(g)}));
+      group.appendChild(wrap);
+    });
+    n.appendChild(group);
+    makeSortable(group,'.sort-item',(from,to)=>{
+      arrayMove(item.exercises,from,to);
+      renumberDefaultTitles(item.exercises);
+      saveGym(g);
+      nav('gymProfile',{id:g.id,tab:'poursuivre',sess:sess.id});
+    });
+  });
+  if(backfilled) saveGym(g);
+  if(!sess.archived){
+    // Séance active : on peut la terminer / archiver
+    const bar=el(`<div class="selbar"><div class="rowbtns">
+      <button class="btn line grow" data-finish>Terminer & archiver la séance</button>
+    </div></div>`);
+    bar.querySelector('[data-finish]').onclick=()=>confirmModal('Terminer','Archiver cette séance ? Elle restera consultable dans la liste des séances.',async()=>{
+      sess.archived=true; sess.endedAt=Date.now();
+      await saveGym(g); toast('Séance archivée'); nav('gymProfile',{id:g.id,tab:'poursuivre'});
+    },{yesText:'Archiver',danger:false});
+    n.appendChild(bar);
+  } else {
+    // Séance archivée : on peut la reprendre
+    const bar=el(`<div class="selbar"><div class="rowbtns">
+      <button class="btn g grow" data-resume>Reprendre cette séance</button>
+    </div></div>`);
+    bar.querySelector('[data-resume]').onclick=()=>confirmModal('Reprendre','Reprendre cette séance ? Elle redeviendra active.',async()=>{
+      sess.archived=false; delete sess.endedAt;
+      await saveGym(g); toast('Séance reprise'); nav('gymProfile',{id:g.id,tab:'poursuivre',sess:sess.id});
+    },{yesText:'Reprendre',danger:false});
+    n.appendChild(bar);
+  }
+  return n;
+}
+
+/* ============================================================
+   EXERCISE CARD (shared) — mode: 'edit' | 'session'
+   ============================================================ */
+function renderExerciseCard(ex, {mode='edit', onChange, onDelete, onDuplicate, exIndex, dragHandle=false, readonly=false}={}){
+  const edit = mode==='edit';
+  const card=el(`<div class="exo"></div>`);
+  // head
+  const head=el(`<div class="exo-head">
+    <div class="exo-title"></div>
+  </div>`);
+  if(dragHandle){
+    head.insertBefore(el('<span class="drag-handle" data-drag-handle title="Glisser pour déplacer">⠿</span>'), head.firstChild);
+  }
+  const titleWrap=head.querySelector('.exo-title');
+  if(edit){
+    const ti=el(`<input value="${esc(ex.title)}">`);
+    ti.oninput=()=>{ ex.title=ti.value; onChange&&onChange(); };
+    titleWrap.appendChild(ti);
+    const del=el('<button class="btn sm danger">Suppr.</button>');
+    del.onclick=()=>onDelete&&onDelete();
+    const dup=el('<button class="btn sm ghost">Dupliquer</button>');
+    dup.onclick=()=>onDuplicate&&onDuplicate();
+    head.appendChild(dup); head.appendChild(del);
+  } else {
+    titleWrap.textContent=ex.title;
+  }
+  card.appendChild(head);
+
+  const body=el('<div class="exo-body"></div>');
+
+  // media : exercice video + consigne
+  const mrow=el('<div class="media-cell"></div>');
+  // exercise video slot
+  mrow.appendChild(mediaSlot('Exercice (vidéo)', ex.videoId, edit, (id)=>{ex.videoId=id;onChange&&onChange();rerender();}));
+  body.appendChild(mrow);
+
+  // consigne
+  const cons=el(`<div style="margin-bottom:12px">
+    <label class="fld">Consigne</label>
+    ${edit?`<textarea class="inp" placeholder="Consigne pour la gymnaste…">${esc(ex.consigne)}</textarea>`
+          :`<div class="inp" style="background:#f7f8fc;min-height:auto">${esc(ex.consigne)||'<span class="muted">—</span>'}</div>`}
+  </div>`);
+  if(edit){ const ta=cons.querySelector('textarea'); ta.oninput=()=>{ex.consigne=ta.value;onChange&&onChange();}; }
+  body.appendChild(cons);
+
+  // séries + objectifs (edit only)
+  if(edit){
+    const sl=el(`<div class="flex" style="margin-bottom:12px;gap:12px;align-items:flex-end;flex-wrap:wrap">
+      <div style="width:110px">
+        <label class="fld">Séries</label>
+        <select class="inp">${Array.from({length:10},(_,i)=>i+1).map(v=>`<option ${v===ex.series?'selected':''}>${v}</option>`).join('')}</select>
+      </div>
+      <div class="grow" style="min-width:180px">
+        <label class="fld">Objectifs</label>
+        <input class="inp" data-obj placeholder="ex. pouvoir faire 20 tractions" value="${esc(ex.objectif||'')}">
+      </div>
+    </div>`);
+    sl.querySelector('select').onchange=e=>{ setSeries(ex,Number(e.target.value)); onChange&&onChange(); rerender(); };
+    const objInp=sl.querySelector('[data-obj]'); objInp.oninput=()=>{ ex.objectif=objInp.value; onChange&&onChange(); };
+    body.appendChild(sl);
+  } else if(ex.objectif){
+    // affichage de l'objectif côté gymnaste
+    body.appendChild(el(`<div class="objectif-box">🎯 <b>Objectif :</b> ${esc(ex.objectif)}</div>`));
+  }
+
+  // GRID
+  const wrap=el(`<div class="tblwrap${edit?'':' tblwrap-session'}"></div>`);
+  const table=el(`<table class="grid${edit?'':' session'}"></table>`);
+  // header row
+  const thead=el('<thead></thead>');
+  const htr=el('<tr></tr>');
+  htr.appendChild(el('<th>Série</th>'));
+  htr.appendChild(el('<th>Reps</th>'));
+  htr.appendChild(el('<th>Poids</th>'));
+  htr.appendChild(el('<th>Exécution</th>'));
+  htr.appendChild(el('<th>Récup.</th>'));
+  htr.appendChild(el('<th>Forme récup.</th>'));
+  // Réalisation columns (séances) — chaque colonne a un menu (+ = ajouter / supprimer)
+  ex.realisations.forEach((col,ci)=>{
+    const th=el(`<th class="colhead">${esc(col.title)}</th>`);
+    const menu=el('<span class="addcol" title="Options de la séance">＋</span>');
+    menu.onclick=()=>seanceMenu(ex,ci,onChange,rerender);
+    th.appendChild(menu);
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr); table.appendChild(thead);
+
+  const tbody=el('<tbody></tbody>');
+  ex.rows.forEach((row,ri)=>{
+    const tr=el('<tr></tr>');
+    tr.appendChild(el(`<td data-label="Série"><b>${ri+1}</b></td>`));
+    // repetition : Mouvements (nombre) ou Statique (temps)
+    const tdRep=el(`<td data-label="Reps" style="min-width:92px"></td>`);
+    const rt=rowRepType(row);
+    if(edit){
+      const typeSel=el(`<select>
+        <option value="mouvement"${rt==='mouvement'?' selected':''}>Mouvements</option>
+        <option value="statique"${rt==='statique'?' selected':''}>Statique</option>
+      </select>`);
+      typeSel.onchange=()=>{ row.repType=typeSel.value; onChange&&onChange(); rerender(); };
+      tdRep.appendChild(typeSel);
+      if(rt==='mouvement'){
+        const s=el(`<select style="margin-top:6px">${Array.from({length:31},(_,i)=>i).map(v=>`<option ${v===Number(row.repetition)?'selected':''}>${v}</option>`).join('')}</select>`);
+        s.onchange=()=>{row.repetition=Number(s.value);onChange&&onChange();refreshFeedback();};
+        tdRep.appendChild(s);
+      } else {
+        const mm=el(`<select style="min-width:40px">${Array.from({length:11},(_,i)=>i).map(v=>`<option ${v===Number(row.repMin||0)?'selected':''}>${v}</option>`).join('')}</select>`);
+        const ss=el(`<select style="min-width:40px">${[0,5,10,15,20,25,30,35,40,45,50,55].map(v=>`<option ${v===Number(row.repSec||0)?'selected':''}>${v}</option>`).join('')}</select>`);
+        mm.onchange=()=>{row.repMin=Number(mm.value);onChange&&onChange();};
+        ss.onchange=()=>{row.repSec=Number(ss.value);onChange&&onChange();};
+        const box=el('<div class="flex" style="gap:4px;justify-content:center;margin-top:6px"></div>');
+        box.appendChild(mm);box.appendChild(el('<span>′</span>'));box.appendChild(ss);box.appendChild(el('<span>″</span>'));
+        tdRep.appendChild(box);
+      }
+    } else {
+      if(rt==='mouvement') tdRep.textContent=row.repetition;
+      else tdRep.innerHTML=`<span class="recup-time">${String(row.repMin||0).padStart(2,'0')} min : ${String(row.repSec||0).padStart(2,'0')} sec</span>`;
+    }
+    tr.appendChild(tdRep);
+    // poids : "Saisissez votre poids" (chiffres, kg) ou "Poids de corps"
+    const tdPoids=el('<td data-label="Poids" style="min-width:92px"></td>');
+    const pt=rowPoidsType(row);
+    if(edit){
+      const psel=el(`<select>
+        <option value="saisie"${pt==='saisie'?' selected':''}>Saisissez votre poids</option>
+        <option value="corps"${pt==='corps'?' selected':''}>Poids de corps</option>
+      </select>`);
+      psel.onchange=()=>{ row.poidsType=psel.value; onChange&&onChange(); rerender(); };
+      tdPoids.appendChild(psel);
+      if(pt==='saisie'){
+        const inp=el(`<input type="text" inputmode="decimal" value="${esc(row.poids||'')}" placeholder="kg" style="margin-top:6px">`);
+        inp.oninput=()=>{ inp.value=inp.value.replace(/[^0-9.,]/g,''); row.poids=inp.value; onChange&&onChange(); };
+        tdPoids.appendChild(inp);
+      }
+    } else {
+      if(pt==='corps') tdPoids.innerHTML=`<span class="recup-form-tag">Poids de corps</span>`;
+      else tdPoids.textContent = row.poids ? (row.poids+' kg') : '—';
+    }
+    tr.appendChild(tdPoids);
+    // execution
+    const tdEx=el('<td data-label="Exécution"></td>');
+    if(edit){
+      const s=el(`<select>${EXEC.map(v=>`<option ${v===row.execution?'selected':''}>${v.replace('Exécution ','')}</option>`).join('')}</select>`);
+      s.onchange=()=>{row.execution='Exécution '+s.value;onChange&&onChange();};
+      tdEx.appendChild(s);
+    } else tdEx.textContent=(row.execution||'').replace('Exécution ','');
+    tr.appendChild(tdEx);
+    // recup min:sec
+    const tdRec=el('<td data-label="Récup."></td>');
+    if(edit){
+      const mm=el(`<select style="min-width:40px">${Array.from({length:11},(_,i)=>i).map(v=>`<option ${v===Number(row.recupMin)?'selected':''}>${v}</option>`).join('')}</select>`);
+      const ss=el(`<select style="min-width:40px">${[0,5,10,15,20,25,30,35,40,45,50,55].map(v=>`<option ${v===Number(row.recupSec)?'selected':''}>${v}</option>`).join('')}</select>`);
+      mm.onchange=()=>{row.recupMin=Number(mm.value);onChange&&onChange();};
+      ss.onchange=()=>{row.recupSec=Number(ss.value);onChange&&onChange();};
+      const box=el('<div class="flex" style="gap:4px;justify-content:center"></div>');
+      box.appendChild(mm);box.appendChild(el('<span>′</span>'));box.appendChild(ss);box.appendChild(el('<span>″</span>'));
+      tdRec.appendChild(box);
+    } else tdRec.innerHTML=`<span class="recup-time">${String(row.recupMin).padStart(2,'0')} min : ${String(row.recupSec).padStart(2,'0')} sec</span>`;
+    tr.appendChild(tdRec);
+    // forme de récup : Passive / Active / Média (+ média si "Média")
+    const tdForm=el(`<td data-label="Forme récup." style="min-width:88px"></td>`);
+    const curForm=rowRecupForm(row);
+    if(edit){
+      const sf=el(`<select>
+        <option value="passive"${curForm==='passive'?' selected':''}>Passive</option>
+        <option value="active"${curForm==='active'?' selected':''}>Active</option>
+        <option value="media"${curForm==='media'?' selected':''}>Média</option>
+      </select>`);
+      sf.onchange=()=>{ row.recupForm=sf.value; onChange&&onChange(); rerender(); };
+      tdForm.appendChild(sf);
+      if(curForm==='media'){
+        const slot=miniMediaSlot(row.recupVideoId, true, id=>{row.recupVideoId=id;onChange&&onChange();rerender();});
+        slot.style.marginTop='6px';
+        tdForm.appendChild(slot);
+      }
+    } else {
+      if(curForm==='media'){
+        tdForm.appendChild(miniMediaSlot(row.recupVideoId, false, ()=>{}));
+      } else {
+        tdForm.appendChild(el(`<span class="recup-form-tag">${curForm==='active'?'Active':'Passive'}</span>`));
+      }
+    }
+    tr.appendChild(tdForm);
+    // realisations
+    ex.realisations.forEach((col,ci)=>{
+      const td=el(`<td data-label="${esc(col.title)}"></td>`);
+      if(readonly){
+        td.innerHTML=`<b>${Number(col.values[ri]||0)}</b>`;
+      } else {
+        const s=el(`<select>${Array.from({length:31},(_,i)=>i).map(v=>`<option ${v===Number(col.values[ri])?'selected':''}>${v}</option>`).join('')}</select>`);
+        s.onchange=()=>{col.values[ri]=Number(s.value);onChange&&onChange();refreshFeedback();};
+        td.appendChild(s);
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table); body.appendChild(wrap);
+
+  // feedback zone (per réalisation column)
+  const fbZone=el('<div class="fbzone"></div>');
+  body.appendChild(fbZone);
+  function refreshFeedback(){
+    fbZone.innerHTML='';
+    ex.realisations.forEach((col,ci)=>{
+      const any = col.values.some(v=>Number(v)>0);
+      if(!any) return;
+      const fb=exerciseFeedback(ex,ci); if(!fb) return;
+      fbZone.appendChild(el(`<div class="feedback ${fb.cls}"><b>${esc(col.title)} :</b> ${esc(fb.text)}</div>`));
+    });
+  }
+  refreshFeedback();
+
+  card.appendChild(body);
+
+  // rerender helper: replace this card in place
+  function rerender(){
+    const fresh=renderExerciseCard(ex,{mode,onChange,onDelete,onDuplicate,exIndex,dragHandle,readonly});
+    card.replaceWith(fresh);
+  }
+  return card;
+}
+
+/* media slot (big) */
+function mediaSlot(caption, mediaId, editable, onPick){
+  const wrap=el(`<div class="media-slot"><div class="cap">${esc(caption)}</div><div class="box"></div></div>`);
+  const box=wrap.querySelector('.box');
+  fillMediaBox(box,mediaId);
+  if(editable){ box.style.cursor='pointer'; box.onclick=()=>pickMedia(onPick); }
+  return wrap;
+}
+function miniMediaSlot(mediaId, editable, onPick){
+  const box=el('<div class="mini-media"></div>');
+  fillMediaBox(box,mediaId,true);
+  if(editable){ box.style.cursor='pointer'; box.onclick=()=>pickMedia(onPick); }
+  return box;
+}
+/* Build a looping, auto-playing muted video reliably (muted attr via innerHTML is unreliable) */
+function makeLoopVideo(url){
+  const v=document.createElement('video');
+  v.muted=true; v.defaultMuted=true; v.loop=true; v.autoplay=true; v.playsInline=true;
+  v.setAttribute('muted',''); v.setAttribute('playsinline',''); v.setAttribute('webkit-playsinline','');
+  v.setAttribute('loop',''); v.preload='auto'; v.src=url;
+  const tryPlay=()=>{ try{ const p=v.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} };
+  v.addEventListener('loadedmetadata',tryPlay);
+  v.addEventListener('canplay',tryPlay);
+  v.addEventListener('click',tryPlay);
+  setTimeout(tryPlay,50); setTimeout(tryPlay,400);
+  return v;
+}
+function fillMediaBox(box, mediaId, mini){
+  box.innerHTML='';
+  const m = mediaId && S.media.find(x=>x.id===mediaId);
+  if(!m){ box.appendChild(el(`<span style="font-size:${mini?11:13}px">➜ Médiathèque</span>`)); return; }
+  const url=mediaURL(mediaId);
+  if(m.type==='video'){ box.appendChild(makeLoopVideo(url)); }
+  else box.appendChild(el(`<img src="${url}" alt="${esc(m.name)}">`));
+}
+
+/* media picker modal */
+function pickMedia(onPick){
+  const folders=allFoldersSorted();
+  let folderId = folders[0] ? folders[0].id : null;
+  let type='all';
+  const body=el('<div></div>');
+  const fsel=el(`<div style="margin-bottom:12px">
+    <label class="fld">Dossier</label>
+    <select class="inp">${folders.map(f=>`<option value="${f.id}">${esc(folderPathLabel(f.id))}</option>`).join('')}</select>
+  </div>`);
+  const sel=fsel.querySelector('select'); if(folderId) sel.value=folderId;
+  sel.onchange=()=>{ folderId=sel.value; paint(); };
+  body.appendChild(fsel);
+  const tbar=el(`<div class="btnrow" style="margin-bottom:12px">
+    <button class="btn sm ghost" data-t="all">Tout</button>
+    <button class="btn sm ghost" data-t="video">Vidéos</button>
+    <button class="btn sm ghost" data-t="image">Images</button>
+    <button class="btn sm line" data-clear>Aucun média</button></div>`);
+  tbar.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{type=b.dataset.t;paint();});
+  tbar.querySelector('[data-clear]').onclick=()=>{onPick(null);closeModal();};
+  body.appendChild(tbar);
+  const grid=el('<div class="media-grid"></div>');
+  body.appendChild(grid);
+  function paint(){
+    grid.innerHTML='';
+    const items=S.media.filter(m=>m.folder===folderId && (type==='all'||m.type===type));
+    if(!items.length){ grid.appendChild(el('<div class="muted" style="grid-column:1/-1">Aucun média dans ce dossier. Ajoute-les via l’onglet Médiathèque.</div>')); return; }
+    items.forEach(m=>{
+      const th=el(`<div class="media-thumb"><div class="th"></div><div class="lb">${esc(m.name)}</div></div>`);
+      const thb=th.querySelector('.th');
+      const url=mediaURL(m.id);
+      if(m.type==='video') thb.appendChild(makeLoopVideo(url));
+      else thb.appendChild(el(`<img src="${url}">`));
+      th.onclick=()=>{ onPick(m.id); closeModal(); };
+      grid.appendChild(th);
+    });
+  }
+  paint();
+  modal('Médiathèque — choisir un média',body,{wide:true});
+}
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+
+/* ============================================================
+   CONSTRUIRE UNE SÉANCE
+   ============================================================ */
+function buildScreen(){
+  const n=el('<div></div>');
+  const tab=S.params.tab||'agres';
+  n.appendChild(header('Construire une séance',null,[
+    {label:'Accueil',to:()=>{S.role=null;nav('home');}},
+    {label:'Entraîneur',to:()=>nav('trainerHome')},
+    {label:'Construire'}
+  ]));
+  const tabs=el(`<div class="pill-tabs">
+    <button data-t="agres">Programmes par agrès</button>
+    <button data-t="media">Médiathèque</button>
+  </div>`);
+  tabs.querySelectorAll('button').forEach(b=>{ if(b.dataset.t===tab)b.classList.add('on'); b.onclick=()=>nav('build',{tab:b.dataset.t}); });
+  n.appendChild(tabs);
+
+  if(tab==='media') n.appendChild(buildMedia());
+  else n.appendChild(buildAgres());
+  return n;
+}
+
+/* -- agrès : pick apparatus then list/edit programs -- */
+function buildAgres(){
+  const n=el('<div></div>');
+  const app=S.params.app;
+  if(!app){
+    n.appendChild(el('<p class="muted" style="margin-top:-4px">Choisis un agrès pour gérer ses programmes.</p>'));
+    const tabs=el('<div class="apparatus-tabs"></div>');
+    APPARATUS.forEach(a=>{
+      const c=S.programs.filter(p=>p.apparatus===a.key).length;
+      const t=el(`<button class="atab ${a.cls}">${a.label}<small>${c} programme(s)</small></button>`);
+      t.onclick=()=>nav('build',{tab:'agres',app:a.key});
+      tabs.appendChild(t);
+    });
+    n.appendChild(tabs);
+    return n;
+  }
+  // program editor if editing
+  if(S.params.prog){ return programEditor('agres',app,S.params.prog); }
+
+  // list programs for this apparatus
+  const meta=APP_META[app];
+  n.appendChild(el(`<div class="flex" style="margin-bottom:12px">
+    <span class="chip" style="background:${meta.chip}">${meta.label}</span>
+    <b class="grow" style="font-size:18px">Programmes</b>
+  </div>`));
+  const bar=el(`<div class="btnrow" style="margin-bottom:14px">
+    <button class="btn line" data-back>‹ Agrès</button>
+    <button class="btn" data-add>＋ Ajouter un programme</button></div>`);
+  bar.querySelector('[data-back]').onclick=()=>nav('build',{tab:'agres'});
+  bar.querySelector('[data-add]').onclick=()=>{
+    promptModal('Nouveau programme — '+meta.label,'Nom du programme',{placeholder:'ex. Renfo bas du corps',okText:'Créer',onOk:async(name)=>{
+      const p={id:uid(),apparatus:app,name,exercises:[newExercise(1)],createdAt:Date.now()};
+      await saveProg(p); S.programs.push(p); closeModal(); nav('build',{tab:'agres',app,prog:p.id});
+    }});
+  };
+  n.appendChild(bar);
+
+  const progs=S.programs.filter(p=>p.apparatus===app);
+  if(!progs.length) n.appendChild(el('<div class="empty">Aucun programme. Ajoute-en un.</div>'));
+  progs.forEach(p=>{
+    const it=el(`<div class="list-item">
+      <div class="name grow">${esc(p.name)}</div><div class="meta">${p.exercises.length} exo</div>
+      <button class="btn sm ghost" data-send>Envoyer à</button>
+      <button class="btn sm" data-edit>Modifier</button>
+      <button class="btn sm danger" data-del>Suppr.</button></div>`);
+    it.querySelector('[data-send]').onclick=()=>sendProgramModal(p.name, ()=>({apparatus:p.apparatus, programName:p.name, consignesGenerales:p.consignesGenerales||'', exercises:p.exercises.map(e=>cloneExercise(e))}));
+    it.querySelector('[data-edit]').onclick=()=>nav('build',{tab:'agres',app,prog:p.id});
+    it.querySelector('[data-del]').onclick=()=>confirmModal('Supprimer',`Supprimer le programme « ${p.name} » ?`,async()=>{
+      await DB.del('programs',p.id); cloudRemove('programs',p.id); S.programs=S.programs.filter(x=>x.id!==p.id); nav('build',{tab:'agres',app});
+    });
+    n.appendChild(it);
+  });
+  return n;
+}
+
+/* -- Program editor (shared for agrès + complet) -- */
+function programEditor(kind,app,progId){
+  const isFull = kind==='complet';
+  const store = isFull?S.fullPrograms:S.programs;
+  const save  = isFull?saveFull:saveProg;
+  const p=store.find(x=>x.id===progId);
+  const n=el('<div></div>');
+  if(!p){ n.appendChild(el('<div class="empty">Programme introuvable.</div>')); return n; }
+
+  const meta = isFull?{label:'Programme complet',chip:'var(--ink)'}:APP_META[app];
+  const bar=el(`<div class="btnrow" style="margin-bottom:6px">
+    <button class="btn line" data-back>‹ Retour</button>
+    <button class="btn ghost" data-rename>Renommer</button></div>`);
+  bar.querySelector('[data-back]').onclick=()=> isFull?nav('build',{tab:'complet'}):nav('build',{tab:'agres',app});
+  bar.querySelector('[data-rename]').onclick=()=>promptModal('Renommer','Nom du programme',{value:p.name,okText:'Renommer',onOk:async(v)=>{p.name=v;await save(p);closeModal();refresh();}});
+  n.appendChild(bar);
+  n.appendChild(el(`<div class="flex" style="margin:6px 0 4px">
+    <span class="chip" style="background:${meta.chip}">${esc(meta.label)}</span>
+    <b class="grow" style="font-size:19px">${esc(p.name)}</b></div>`));
+  // Consignes générales du programme (affichées avant la séance côté gym)
+  const cg=el(`<div style="margin:6px 0 12px">
+    <label class="fld">Consignes générales</label>
+    <textarea class="inp" placeholder="Consignes à lire avant la séance…">${esc(p.consignesGenerales||'')}</textarea>
+  </div>`);
+  cg.querySelector('textarea').oninput=e=>{ p.consignesGenerales=e.target.value; save(p); };
+  n.appendChild(cg);
+  n.appendChild(el('<p class="muted" style="margin:0 0 14px;font-size:12.5px">Astuce : glisse la poignée ⠿ pour réordonner tes exercices.</p>'));
+
+  const list=el('<div class="exolist"></div>');
+  n.appendChild(list);
+  // Réordonnancement par glisser-déposer (attaché une seule fois : délégation)
+  makeSortable(list,'.sort-item',(from,to)=>{
+    arrayMove(p.exercises,from,to);
+    renumberDefaultTitles(p.exercises);
+    save(p);
+    refresh();
+  });
+  function refresh(){
+    list.innerHTML='';
+    p.exercises.forEach((ex,i)=>{
+      const item=el('<div class="sort-item"></div>');
+      const card=renderExerciseCard(ex,{
+        mode:'edit', exIndex:i, dragHandle:true,
+        onChange:()=>save(p),
+        onDelete:()=>confirmModal('Supprimer',`Supprimer « ${ex.title} » ?`,async()=>{ p.exercises.splice(i,1); await save(p); refresh(); }),
+        onDuplicate:async()=>{ p.exercises.splice(i+1,0,cloneExercise(ex,p.exercises.length+1)); await save(p); refresh(); }
+      });
+      item.appendChild(card);
+      // + menu after each table
+      const plus=el('<div class="plus"><button title="Ajouter">＋</button></div>');
+      plus.querySelector('button').onclick=()=>plusMenu(p,i,save,refresh);
+      item.appendChild(plus);
+      list.appendChild(item);
+    });
+    if(!p.exercises.length){
+      const plus=el('<div class="plus"><button title="Ajouter">＋</button></div>');
+      plus.querySelector('button').onclick=()=>plusMenu(p,-1,save,refresh);
+      list.appendChild(plus);
+    }
+  }
+  refresh();
+  return n;
+}
+function plusMenu(p,afterIndex,save,refresh){
+  const body=el(`<div class="btnrow" style="flex-direction:column">
+    <button class="btn" data-blank>Ajouter un tableau vierge</button>
+    ${afterIndex>=0?'<button class="btn ghost" data-dup>Dupliquer ce tableau</button>':''}
+  </div>`);
+  body.querySelector('[data-blank]').onclick=async()=>{
+    const ex=newExercise(p.exercises.length+1);
+    p.exercises.splice(afterIndex+1,0,ex); await save(p); closeModal(); refresh();
+  };
+  const dup=body.querySelector('[data-dup]');
+  if(dup) dup.onclick=async()=>{ const src=p.exercises[afterIndex]; p.exercises.splice(afterIndex+1,0,cloneExercise(src,p.exercises.length+1)); await save(p); closeModal(); refresh(); };
+  modal('Ajouter un tableau',body);
+}
+
+/* Menu d'une colonne "Séance N" (résultats) : ajouter une séance ou supprimer celle-ci */
+function seanceMenu(ex, ci, onChange, rerender){
+  const title = ex.realisations[ci] ? ex.realisations[ci].title : 'Séance';
+  const body=el(`<div class="btnrow" style="flex-direction:column">
+    <button class="btn" data-add>＋ Ajouter une séance</button>
+    <button class="btn danger" data-del>🗑 Supprimer « ${esc(title)} »</button>
+  </div>`);
+  body.querySelector('[data-add]').onclick=()=>{
+    ex.realisations.push({title:'Séance '+(ex.realisations.length+1), values:ex.rows.map(()=>0)});
+    onChange&&onChange(); closeModal(); rerender&&rerender();
+  };
+  body.querySelector('[data-del]').onclick=()=>{
+    if(ex.realisations.length<=1){ toast('Il faut garder au moins une séance'); return; }
+    ex.realisations.splice(ci,1);
+    ex.realisations.forEach((c,i)=>{ c.title='Séance '+(i+1); }); // renumérote proprement
+    onChange&&onChange(); closeModal(); rerender&&rerender();
+  };
+  modal('Séance — options', body);
+}
+
+/* -- Programme complet tab -- */
+function buildComplet(){
+  const n=el('<div></div>');
+  if(S.params.prog) return programEditor('complet',null,S.params.prog);
+  n.appendChild(el('<p class="muted" style="margin-top:-4px">Séances complètes, choisissables depuis un compte gym.</p>'));
+  const bar=el(`<div class="btnrow" style="margin-bottom:14px"><button class="btn" data-add>＋ Créer un programme complet</button></div>`);
+  bar.querySelector('[data-add]').onclick=()=>promptModal('Nouveau programme complet','Nom du programme',{placeholder:'ex. Séance découverte',okText:'Créer',onOk:async(name)=>{
+    const p={id:uid(),name,exercises:[newExercise(1)],createdAt:Date.now()};
+    await saveFull(p); S.fullPrograms.push(p); closeModal(); nav('build',{tab:'complet',prog:p.id});
+  }});
+  n.appendChild(bar);
+  if(!S.fullPrograms.length) n.appendChild(el('<div class="empty">Aucun programme complet.</div>'));
+  S.fullPrograms.forEach(p=>{
+    const it=el(`<div class="list-item"><div class="name grow">${esc(p.name)}</div><div class="meta">${p.exercises.length} exo</div>
+      <button class="btn sm ghost" data-send>Envoyer à</button>
+      <button class="btn sm" data-edit>Modifier</button>
+      <button class="btn sm ghost" data-dup>Dupliquer</button>
+      <button class="btn sm danger" data-del>Suppr.</button></div>`);
+    it.querySelector('[data-send]').onclick=()=>sendProgramModal(p.name, ()=>({apparatus:'complet', programName:p.name, consignesGenerales:p.consignesGenerales||'', exercises:p.exercises.map(e=>cloneExercise(e))}));
+    it.querySelector('[data-edit]').onclick=()=>nav('build',{tab:'complet',prog:p.id});
+    it.querySelector('[data-dup]').onclick=async()=>{ const c={...JSON.parse(JSON.stringify(p)),id:uid(),name:p.name+' (copie)'}; await saveFull(c); S.fullPrograms.push(c); nav('build',{tab:'complet'}); };
+    it.querySelector('[data-del]').onclick=()=>confirmModal('Supprimer',`Supprimer « ${p.name} » ?`,async()=>{ await DB.del('fullPrograms',p.id); cloudRemove('fullPrograms',p.id); S.fullPrograms=S.fullPrograms.filter(x=>x.id!==p.id); nav('build',{tab:'complet'}); });
+    n.appendChild(it);
+  });
+  return n;
+}
+
+/* ============================================================
+   MÉDIATHÈQUE
+   ============================================================ */
+function buildMedia(){
+  const n=el('<div></div>');
+  const folderId=S.params.folder||null;
+
+  // ---------- Racine : liste des agrès (parent=null) ----------
+  if(!folderId){
+    n.appendChild(el('<p class="muted" style="margin-top:-4px">Range tes vidéos et images par dossier et sous-dossier. Elles sont disponibles partout dans le site.</p>'));
+    const bar=el(`<div class="btnrow" style="margin-bottom:14px"><button class="btn" data-addf>＋ Ajouter un dossier</button></div>`);
+    bar.querySelector('[data-addf]').onclick=()=>promptModal('Nouveau dossier','Nom du dossier',{placeholder:'ex. Échauffement',okText:'Créer',onOk:async(name)=>{
+      S.folders.push({id:uid(), name:name.trim(), parent:null}); await saveFolders(); closeModal(); nav('build',{tab:'media'});
+    }});
+    n.appendChild(bar);
+    n.appendChild(folderGrid(null));
+    return n;
+  }
+
+  // ---------- À l'intérieur d'un dossier ----------
+  const folder=folderById(folderId);
+  if(!folder){ n.appendChild(el('<div class="empty">Dossier introuvable.</div>')); return n; }
+
+  // fil d'ariane
+  const chain=folderChain(folderId);
+  const crumb=el('<div class="crumbs" style="margin-bottom:12px"></div>');
+  const rootB=el('<b style="cursor:pointer">Dossiers</b>'); rootB.onclick=()=>nav('build',{tab:'media'}); crumb.appendChild(rootB);
+  chain.forEach((f,i)=>{
+    crumb.appendChild(el('<span>›</span>'));
+    if(i<chain.length-1){ const b=el(`<b style="cursor:pointer">${esc(f.name)}</b>`); b.onclick=()=>nav('build',{tab:'media',folder:f.id}); crumb.appendChild(b); }
+    else crumb.appendChild(el(`<span>${esc(f.name)}</span>`));
+  });
+  n.appendChild(crumb);
+
+  // retour + ajouter un sous-dossier
+  const backTarget = folder.parent ? {tab:'media',folder:folder.parent} : {tab:'media'};
+  const topbar=el(`<div class="btnrow" style="margin-bottom:12px">
+    <button class="btn line" data-back>‹ Retour</button>
+    <button class="btn" data-addsub>＋ Ajouter un sous-dossier</button></div>`);
+  topbar.querySelector('[data-back]').onclick=()=>nav('build',backTarget);
+  topbar.querySelector('[data-addsub]').onclick=()=>promptModal('Nouveau sous-dossier','Nom du sous-dossier',{placeholder:"ex. Éléments vers l'arrière",okText:'Créer',onOk:async(name)=>{
+    S.folders.push({id:uid(), name:name.trim(), parent:folderId}); await saveFolders(); closeModal(); nav('build',{tab:'media',folder:folderId});
+  }});
+  n.appendChild(topbar);
+
+  n.appendChild(el(`<h2 style="margin-top:4px">📁 ${esc(folder.name)}</h2>`));
+
+  // sous-dossiers
+  if(folderChildren(folderId).length){
+    n.appendChild(el('<div class="muted" style="font-size:12.5px;margin:2px 0 6px">Sous-dossiers</div>'));
+    n.appendChild(folderGrid(folderId));
+    n.appendChild(el('<div class="spacer"></div>'));
+  }
+
+  // dropzone (upload dans CE dossier)
+  const dz=el(`<div class="dropzone" id="dz">Dépose ici tes vidéos/images<br><span class="muted" style="font-size:13px">ou</span><br>
+    <label class="btn sm ghost" style="margin-top:8px;display:inline-flex">Choisir des fichiers<input type="file" accept="video/*,image/*" multiple hidden></label></div>`);
+  const fileInput=dz.querySelector('input');
+  const handleFiles=async(files)=>{
+    if(!CLOUD_ENABLED || !Cloud.online){ toast("Connexion au cloud requise pour ajouter des médias"); return; }
+    let okCount=0;
+    toast("Envoi de "+files.length+" fichier(s)…");
+    for(const f of files){
+      const type=f.type.startsWith('video')?'video':'image';
+      const id=uid();
+      const extMatch=f.name.match(/\.[^.]+$/); const ext=extMatch?extMatch[0]:(type==='video'?'.mp4':'.jpg');
+      const path=id+ext;
+      try{
+        const url=await Cloud.uploadFile(path,f);
+        const m={id,folder:folderId,type,name:f.name.replace(/\.[^.]+$/,''),url,path,createdAt:Date.now()};
+        await DB.put('media',m); S.media.push(m); await Cloud.upsertMedia(m); okCount++;
+      }catch(e){ console.warn("upload echoue", e); }
+    }
+    if(okCount) toast(okCount+" fichier(s) envoyé(s)"); else toast("Échec de l'envoi");
+    nav('build',{tab:'media',folder:folderId});
+  };
+  fileInput.onchange=()=>handleFiles([...fileInput.files]);
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('hot');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('hot'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('hot');handleFiles([...e.dataTransfer.files]);});
+  n.appendChild(dz);
+  n.appendChild(el('<div class="spacer"></div>'));
+
+  // filtre + grille des médias
+  let sub='all';
+  const filt=el(`<div class="btnrow" style="margin-bottom:12px">
+    <button class="btn sm ghost on">Tout</button>
+    <button class="btn sm ghost">Vidéos</button>
+    <button class="btn sm ghost">Images</button></div>`);
+  const grid=el('<div class="media-grid"></div>');
+  const paint=()=>{
+    grid.innerHTML='';
+    const items=S.media.filter(m=>m.folder===folderId && (sub==='all'||m.type===sub));
+    if(!items.length){ grid.appendChild(el('<div class="muted" style="grid-column:1/-1">Dossier vide.</div>')); return; }
+    items.forEach(m=>{
+      const th=el(`<div class="media-thumb"><div class="th"></div><div class="lb">${esc(m.name)}</div>
+        <div class="flex" style="padding:0 8px 8px;gap:6px;flex-wrap:wrap">
+          <button class="btn sm ghost" data-rename style="flex:1;font-size:11px">Renommer</button>
+          <button class="btn sm ghost" data-move style="flex:1;font-size:11px">Déplacer</button>
+          <button class="btn sm danger" data-del style="flex:1;font-size:11px">Suppr.</button></div></div>`);
+      const thb=th.querySelector('.th'); const url=mediaURL(m.id);
+      if(m.type==='video') thb.appendChild(makeLoopVideo(url));
+      else thb.appendChild(el(`<img src="${url}">`));
+      th.querySelector('[data-rename]').onclick=()=>promptModal('Renommer le média','Nom',{value:m.name,okText:'Renommer',onOk:async(v)=>{ m.name=v.trim(); await DB.put('media',m); cloudPushMedia(m); closeModal(); paint(); }});
+      th.querySelector('[data-del]').onclick=()=>confirmModal('Supprimer',`Supprimer « ${m.name} » ?`,async()=>{ await DB.del('media',m.id); cloudRemoveMedia(m.id,m.path); S.media=S.media.filter(x=>x.id!==m.id); delete objURLs[m.id]; paint(); });
+      th.querySelector('[data-move]').onclick=()=>{
+        const opts=allFoldersSorted();
+        const b=el(`<div><label class="fld">Déplacer vers</label>
+          <select class="inp">${opts.map(f=>`<option value="${f.id}" ${f.id===m.folder?'selected':''}>${esc(folderPathLabel(f.id))}</option>`).join('')}</select>
+          <div class="spacer"></div><div class="btnrow" style="justify-content:flex-end">
+          <button class="btn ghost" data-x>Annuler</button><button class="btn" data-ok>Déplacer</button></div></div>`);
+        b.querySelector('[data-x]').onclick=closeModal;
+        b.querySelector('[data-ok]').onclick=async()=>{ m.folder=b.querySelector('select').value; await DB.put('media',m); cloudPushMedia(m); closeModal(); nav('build',{tab:'media',folder:folderId}); };
+        modal('Déplacer le média',b);
+      };
+      grid.appendChild(th);
+    });
+  };
+  filt.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{ filt.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); sub=['all','video','image'][i]; paint(); });
+  n.appendChild(filt); n.appendChild(grid); paint();
+  return n;
+}
+
+/* Grille de dossiers (enfants de parentId ; null => agrès racine) */
+function folderGrid(parentId){
+  const grid=el('<div class="tiles"></div>');
+  const children=folderChildren(parentId);
+  if(!children.length){ grid.appendChild(el('<div class="muted" style="grid-column:1/-1">Aucun dossier.</div>')); return grid; }
+  children.forEach(f=>{
+    const count=mediaCountDeep(f.id);
+    const subCount=folderChildren(f.id).length;
+    const removable=!isDefaultFolder(f.id);
+    const t=el(`<button class="tile" style="align-items:flex-start">
+      <div class="em">📁</div><div class="t">${esc(f.name)}</div>
+      <div class="d">${count} média(s)${subCount?` · ${subCount} sous-dossier(s)`:''}</div>
+      ${removable?'<span class="btn sm danger" data-delf style="margin-top:8px;align-self:flex-start">Supprimer</span>':''}
+    </button>`);
+    t.onclick=(e)=>{ if(e.target.closest('[data-delf]')) return; nav('build',{tab:'media',folder:f.id}); };
+    const df=t.querySelector('[data-delf]');
+    if(df) df.onclick=(e)=>{ e.stopPropagation(); confirmModal('Supprimer le dossier',`Supprimer « ${f.name} », ses sous-dossiers et tous leurs médias ?`,async()=>{
+      const ids=[f.id,...folderDescendantIds(f.id)];
+      for(const m of S.media.filter(x=>ids.includes(x.folder))){ await DB.del('media',m.id); cloudRemoveMedia(m.id,m.path); delete objURLs[m.id]; }
+      S.media=S.media.filter(x=>!ids.includes(x.folder));
+      S.folders=S.folders.filter(x=>!ids.includes(x.id));
+      await saveFolders(); nav('build', parentId?{tab:'media',folder:parentId}:{tab:'media'});
+    }); };
+    grid.appendChild(t);
+  });
+  return grid;
+}
+
+/* ============================================================
+   FORMATION — vidéos YouTube rangées par dossiers (agrès + perso)
+   ============================================================ */
+const FT = {
+  byId:id=>S.formation.folders.find(f=>f.id===id)||null,
+  children:p=>S.formation.folders.filter(f=>(f.parent||null)===(p||null)),
+  chain(id){ const c=[]; let cur=FT.byId(id), g=0; while(cur && g++<50){ c.unshift(cur); cur=cur.parent?FT.byId(cur.parent):null; } return c; },
+  label(id){ return FT.chain(id).map(f=>f.name).join(' › '); },
+  desc(id){ const out=[]; const rec=p=>FT.children(p).forEach(c=>{ out.push(c.id); rec(c.id); }); rec(id); return out; },
+  sorted(){ return S.formation.folders.slice().sort((a,b)=>FT.label(a.id).localeCompare(FT.label(b.id),'fr')); },
+  countDeep(id){ const ids=[id,...FT.desc(id)]; return S.formation.videos.filter(v=>ids.includes(v.folder)).length; },
+};
+/* Extrait l'identifiant d'une vidéo YouTube depuis n'importe quel format de lien */
+function ytId(url){
+  const u=(url||'').trim();
+  if(/^[\w-]{11}$/.test(u)) return u;
+  const m=u.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([\w-]{11})/);
+  return m?m[1]:null;
+}
+const ytThumb = id => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+async function ytTitle(url){
+  try{
+    const r=await fetch('https://www.youtube.com/oembed?format=json&url='+encodeURIComponent(url));
+    if(!r.ok) return null; const j=await r.json(); return j.title||null;
+  }catch(e){ return null; }
+}
+function playYouTube(v){
+  const body=el(`<div>
+    <div class="yt-player"><iframe src="https://www.youtube-nocookie.com/embed/${v.yt}?rel=0&autoplay=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>
+    <div class="btnrow" style="justify-content:flex-end;margin-top:12px">
+      <a class="btn line sm" href="https://www.youtube.com/watch?v=${v.yt}" target="_blank" rel="noopener">Ouvrir sur YouTube ↗</a>
+    </div></div>`);
+  modal(v.title, body, {wide:true});
+}
+/* Ajout / modification d'un lien */
+function videoModal(v, folderId, onDone){
+  const isNew=!v;
+  const body=el(`<div>
+    <label class="fld">Lien YouTube</label>
+    <input class="inp" data-url placeholder="https://youtu.be/…" value="${esc(v?v.url:'')}">
+    <div class="spacer"></div>
+    <label class="fld">Titre ${isNew?'<span style="font-weight:500">(laisser vide = titre YouTube)</span>':''}</label>
+    <input class="inp" data-title placeholder="ex. Courbe : les bases" value="${esc(v?v.title:'')}">
+    <div class="spacer"></div>
+    <div class="btnrow" style="justify-content:flex-end">
+      <button class="btn ghost" data-x>Annuler</button>
+      <button class="btn" data-ok>${isNew?'Ajouter':'Enregistrer'}</button></div></div>`);
+  body.querySelector('[data-x]').onclick=closeModal;
+  body.querySelector('[data-ok]').onclick=async()=>{
+    const url=body.querySelector('[data-url]').value.trim();
+    const id=ytId(url);
+    if(!id){ toast('Lien YouTube non reconnu'); return; }
+    let title=body.querySelector('[data-title]').value.trim();
+    if(!title){ toast('Récupération du titre…'); title=(await ytTitle(url))||'Vidéo YouTube'; }
+    if(isNew){
+      const order=Math.max(-1,...S.formation.videos.filter(x=>x.folder===folderId).map(x=>x.order??0))+1;
+      S.formation.videos.push({id:uid(),folder:folderId,title,url,yt:id,order,createdAt:Date.now()});
+    } else { v.url=url; v.yt=id; v.title=title; }
+    await saveFormation(); closeModal(); toast(isNew?'Vidéo ajoutée':'Vidéo modifiée'); onDone();
+  };
+  modal(isNew?'Ajouter une vidéo YouTube':'Modifier la vidéo', body);
+  setTimeout(()=>body.querySelector('[data-url]').focus(),50);
+}
+/* Grille de dossiers de formation */
+function formationFolderGrid(parentId, open, afterDelete){
+  const grid=el('<div class="tiles"></div>');
+  const children=FT.children(parentId);
+  if(!children.length){ grid.appendChild(el('<div class="muted" style="grid-column:1/-1">Aucun dossier.</div>')); return grid; }
+  children.forEach(f=>{
+    const nbV=FT.countDeep(f.id), nbS=FT.children(f.id).length, removable=!isDefaultFolder(f.id);
+    const t=el(`<button class="tile" style="align-items:flex-start">
+      <div class="em">📁</div><div class="t">${esc(f.name)}</div>
+      <div class="d">${nbV} vidéo(s)${nbS?` · ${nbS} sous-dossier(s)`:''}</div>
+      ${removable?`<span class="flex" style="margin-top:8px;gap:6px">
+        <span class="btn sm ghost" data-ren>Renommer</span><span class="btn sm danger" data-delf>Supprimer</span></span>`:''}
+    </button>`);
+    t.onclick=e=>{ if(e.target.closest('[data-delf],[data-ren]')) return; open(f.id); };
+    const ren=t.querySelector('[data-ren]');
+    if(ren) ren.onclick=e=>{ e.stopPropagation(); promptModal('Renommer le dossier','Nom',{value:f.name,okText:'Renommer',onOk:async v=>{ f.name=v; await saveFormation(); closeModal(); afterDelete(); }}); };
+    const df=t.querySelector('[data-delf]');
+    if(df) df.onclick=e=>{ e.stopPropagation(); confirmModal('Supprimer le dossier',`Supprimer « ${f.name} », ses sous-dossiers et leurs liens ? (Les vidéos restent sur YouTube.)`,async()=>{
+      const ids=[f.id,...FT.desc(f.id)];
+      S.formation.videos=S.formation.videos.filter(v=>!ids.includes(v.folder));
+      S.formation.folders=S.formation.folders.filter(x=>!ids.includes(x.id));
+      await saveFormation(); afterDelete();
+    }); };
+    grid.appendChild(t);
+  });
+  return grid;
+}
+/* Contenu d'un dossier : sous-dossiers + vidéos (réordonnables) */
+function formationFolderView(folderId, go, rootId){
+  const n=el('<div></div>');
+  const folder=FT.byId(folderId);
+  if(!folder){ n.appendChild(el('<div class="empty">Dossier introuvable.</div>')); return n; }
+  const here=()=>go(folderId);
+
+  // fil d'Ariane (à partir de la racine du contexte)
+  let chain=FT.chain(folderId);
+  if(rootId){ const i=chain.findIndex(f=>f.id===rootId); if(i>0) chain=chain.slice(i); }
+  const crumb=el('<div class="crumbs" style="margin-bottom:12px"></div>');
+  const rootB=el(`<b style="cursor:pointer">${rootId?'Agrès':'Dossiers'}</b>`); rootB.onclick=()=>go(null); crumb.appendChild(rootB);
+  chain.forEach((f,i)=>{
+    crumb.appendChild(el('<span>›</span>'));
+    if(i<chain.length-1){ const b=el(`<b style="cursor:pointer">${esc(f.name)}</b>`); b.onclick=()=>go(f.id); crumb.appendChild(b); }
+    else crumb.appendChild(el(`<span>${esc(f.name)}</span>`));
+  });
+  n.appendChild(crumb);
+
+  const atRoot = rootId ? folderId===rootId : !folder.parent;
+  const bar=el(`<div class="btnrow" style="margin-bottom:12px">
+    <button class="btn line" data-back>‹ Retour</button>
+    <button class="btn" data-addv>＋ Ajouter une vidéo YouTube</button>
+    <button class="btn line" data-addsub>＋ Sous-dossier</button></div>`);
+  bar.querySelector('[data-back]').onclick=()=>go(atRoot?null:folder.parent);
+  bar.querySelector('[data-addv]').onclick=()=>videoModal(null,folderId,here);
+  bar.querySelector('[data-addsub]').onclick=()=>promptModal('Nouveau sous-dossier','Nom du sous-dossier',{placeholder:'ex. Éléments en arrière',okText:'Créer',onOk:async name=>{
+    S.formation.folders.push({id:uid(),name:name.trim(),parent:folderId}); await saveFormation(); closeModal(); here();
+  }});
+  n.appendChild(bar);
+  n.appendChild(el(`<h2 style="margin-top:4px">📁 ${esc(folder.name)}</h2>`));
+
+  if(FT.children(folderId).length){
+    n.appendChild(el('<div class="muted" style="font-size:12.5px;margin:2px 0 6px">Sous-dossiers</div>'));
+    n.appendChild(formationFolderGrid(folderId, go, here));
+    n.appendChild(el('<div class="spacer"></div>'));
+  }
+
+  const vids=S.formation.videos.filter(v=>v.folder===folderId).sort((a,b)=>(a.order??0)-(b.order??0));
+  if(!vids.length){
+    n.appendChild(el('<div class="empty">Aucune vidéo ici.<br>Ajoute un lien YouTube avec le bouton ci-dessus.</div>'));
+    return n;
+  }
+  n.appendChild(el('<p class="muted" style="margin:6px 0 10px;font-size:12.5px">Touche la miniature pour regarder. Glisse la poignée ⠿ pour changer l’ordre.</p>'));
+  const list=el('<div class="yt-list"></div>');
+  vids.forEach(v=>{
+    const it=el(`<div class="yt-item sort-item">
+      <span class="drag-handle" data-drag-handle title="Glisser pour déplacer">⠿</span>
+      <div class="yt-thumb" data-play><img loading="lazy" src="${ytThumb(v.yt)}" alt=""></div>
+      <div class="yt-info">
+        <div class="name">${esc(v.title)}</div>
+        <div class="yt-actions">
+          <button class="btn sm ghost" data-edit>Modifier</button>
+          <button class="btn sm ghost" data-move>Déplacer</button>
+          <button class="btn sm danger" data-del>Suppr.</button>
+        </div></div></div>`);
+    it.querySelector('[data-play]').onclick=()=>playYouTube(v);
+    it.querySelector('[data-edit]').onclick=()=>videoModal(v,folderId,here);
+    it.querySelector('[data-del]').onclick=()=>confirmModal('Supprimer',`Retirer « ${v.title} » ? (La vidéo reste sur YouTube.)`,async()=>{
+      S.formation.videos=S.formation.videos.filter(x=>x.id!==v.id); await saveFormation(); here();
+    });
+    it.querySelector('[data-move]').onclick=()=>{
+      const b=el(`<div><label class="fld">Déplacer vers</label>
+        <select class="inp">${FT.sorted().map(f=>`<option value="${f.id}" ${f.id===v.folder?'selected':''}>${esc(FT.label(f.id))}</option>`).join('')}</select>
+        <div class="spacer"></div><div class="btnrow" style="justify-content:flex-end">
+        <button class="btn ghost" data-x>Annuler</button><button class="btn" data-ok>Déplacer</button></div></div>`);
+      b.querySelector('[data-x]').onclick=closeModal;
+      b.querySelector('[data-ok]').onclick=async()=>{
+        const to=b.querySelector('select').value;
+        if(to!==v.folder){ v.folder=to; v.order=Math.max(-1,...S.formation.videos.filter(x=>x.folder===to&&x!==v).map(x=>x.order??0))+1; await saveFormation(); toast('Vidéo déplacée'); }
+        closeModal(); here();
+      };
+      modal('Déplacer la vidéo',b);
+    };
+    list.appendChild(it);
+  });
+  n.appendChild(list);
+  makeSortable(list,'.yt-item',(from,to)=>{
+    arrayMove(vids,from,to); vids.forEach((v,i)=>v.order=i); saveFormation(); here();
+  });
+  return n;
+}
+function formationScreen(){
+  const n=el('<div></div>');
+  const tab=S.params.tab||'agres';
+  n.appendChild(header('Formation',null,[
+    {label:'Accueil',to:()=>{S.role=null;nav('home');}},
+    {label:'Entraîneur',to:()=>nav('trainerHome')},
+    {label:'Formation'}
+  ]));
+  const tabs=el(`<div class="pill-tabs">
+    <button data-t="agres">Formation par agrès</button>
+    <button data-t="media">Médiathèque</button></div>`);
+  tabs.querySelectorAll('button').forEach(b=>{ if(b.dataset.t===tab) b.classList.add('on'); b.onclick=()=>nav('formation',{tab:b.dataset.t}); });
+  n.appendChild(tabs);
+
+  if(tab==='agres'){
+    const app=S.params.app;
+    if(!app){
+      n.appendChild(el('<p class="muted" style="margin-top:-4px">Choisis un agrès pour voir ses vidéos de formation.</p>'));
+      const t=el('<div class="apparatus-tabs"></div>');
+      APPARATUS.forEach(a=>{
+        const b=el(`<button class="atab ${a.cls}">${a.label}<small>${FT.countDeep(a.key)} vidéo(s)</small></button>`);
+        b.onclick=()=>nav('formation',{tab:'agres',app:a.key});
+        t.appendChild(b);
+      });
+      n.appendChild(t);
+      return n;
+    }
+    const go=id=> id ? nav('formation',{tab:'agres',app,folder:id}) : nav('formation',{tab:'agres'});
+    n.appendChild(formationFolderView(S.params.folder||app, go, app));
+    return n;
+  }
+
+  // Médiathèque de formation
+  const go=id=> id ? nav('formation',{tab:'media',folder:id}) : nav('formation',{tab:'media'});
+  if(S.params.folder){ n.appendChild(formationFolderView(S.params.folder, go, null)); return n; }
+  n.appendChild(el('<p class="muted" style="margin-top:-4px">Range tes vidéos YouTube de formation par dossier et sous-dossier.</p>'));
+  const bar=el(`<div class="btnrow" style="margin-bottom:14px"><button class="btn" data-addf>＋ Ajouter un dossier</button></div>`);
+  bar.querySelector('[data-addf]').onclick=()=>promptModal('Nouveau dossier','Nom du dossier',{placeholder:'ex. Préparation physique',okText:'Créer',onOk:async name=>{
+    S.formation.folders.push({id:uid(),name:name.trim(),parent:null}); await saveFormation(); closeModal(); go(null);
+  }});
+  n.appendChild(bar);
+  n.appendChild(formationFolderGrid(null, go, ()=>go(null)));
+  return n;
+}
+
+/* ============================================================
+   ADMIN
+   ============================================================ */
+function adminScreen(){
+  const n=el('<div></div>');
+  n.appendChild(header('Administrateur',null,[{label:'Accueil',to:()=>{S.role=null;nav('home');}},{label:'Admin'}]));
+
+  // Cloud / synchronisation
+  const cloudCard=el(`<div class="card">
+    <h2 style="margin-top:2px">Cloud (synchronisation)</h2>
+    <p class="muted" style="margin-top:0">Etat : <b class="cloudstate"></b>. Les donnees (gyms, programmes, reglages) sont partagees entre tous les appareils. Les videos restent locales pour l'instant (etape suivante : R2).</p>
+    <div class="flex" style="flex-wrap:wrap;gap:8px">
+      <button class="btn sm" data-push>\u2b06 Envoyer mes donnees vers le cloud</button>
+      <button class="btn sm ghost" data-pull>\u2b07 Recharger depuis le cloud</button>
+    </div></div>`);
+  const setCState=()=>{ const b=cloudCard.querySelector('.cloudstate'); if(!CLOUD_ENABLED){b.textContent="desactive (hors-ligne)";b.style.color="#6b7391";} else if(Cloud.online){b.textContent="connecte";b.style.color="#2e9e5b";} else {b.textContent="non connecte";b.style.color="#c8302f";} };
+  setCState();
+  cloudCard.querySelector('[data-push]').onclick=async()=>{ if(!CLOUD_ENABLED){toast("Cloud indisponible");return;} toast("Envoi en cours..."); try{ await pushAllToCloud(); setCState(); toast("Donnees envoyees au cloud"); }catch(e){ console.warn(e); toast("Echec de l envoi"); } };
+  cloudCard.querySelector('[data-pull]').onclick=async()=>{ if(!CLOUD_ENABLED){toast("Cloud indisponible");return;} toast("Chargement..."); try{ const c=await Cloud.pullEverything(); Cloud.online=true; S.gymnasts=c.gymnasts; S.programs=c.programs; S.fullPrograms=c.fullPrograms; if(c.settings)S.settings={...DEFAULT_SETTINGS,...c.settings}; S.folders=normalizeFolders(c.folders); S.gymFolders=c.gymFolders||[]; S.formation=normalizeFormation(c.formation); S.media=c.media||[]; await migratePasswords(); await cacheToLocal(); paintCloudBadge(); nav("admin"); toast("Recharge depuis le cloud"); }catch(e){ console.warn(e); Cloud.online=false; paintCloudBadge(); toast("Echec du chargement"); } };
+  n.appendChild(cloudCard);
+
+
+  // Passwords
+  const pw=el(`<div class="card">
+    <h2 style="margin-top:2px">Mots de passe</h2>
+    <div style="max-width:360px">
+      <p class="muted" style="margin-top:0;font-size:12.5px">Les mots de passe ne sont plus stockés en clair : saisis-en un nouveau pour le changer.</p>
+      <label class="fld">Nouveau mot de passe entraîneur</label>
+      <div class="flex"><input class="inp grow" id="tp" type="password" autocomplete="new-password" placeholder="••••••••"><button class="btn sm" data-savet>OK</button></div>
+      <div class="spacer"></div>
+      <label class="fld">Nouveau mot de passe administrateur</label>
+      <div class="flex"><input class="inp grow" id="ap" type="password" autocomplete="new-password" placeholder="••••••••"><button class="btn sm" data-savea>OK</button></div>
+    </div></div>`);
+  pw.querySelector('[data-savet]').onclick=async()=>{ const v=pw.querySelector('#tp').value.trim(); if(!v)return; S.settings.trainerHash=await hashPass(v); await saveSettings(); pw.querySelector('#tp').value=''; toast('Mot de passe entraîneur changé'); };
+  pw.querySelector('[data-savea]').onclick=async()=>{ const v=pw.querySelector('#ap').value.trim(); if(!v)return; S.settings.adminHash=await hashPass(v); await saveSettings(); pw.querySelector('#ap').value=''; toast('Mot de passe administrateur changé'); };
+  n.appendChild(pw);
+
+  // Logo
+  const lg=el(`<div class="card"><h2 style="margin-top:2px">Logo d’accueil</h2>
+    <p class="muted" style="margin-top:0">Image affichée en plein écran sur la page d’accueil.</p>
+    <div class="flex">
+      <label class="btn sm ghost">Choisir un logo<input type="file" accept="image/*" hidden></label>
+      ${S.logo?'<button class="btn sm danger" data-rmlogo>Retirer</button>':''}
+      ${S.logo?`<img src="${S.logo}" style="height:44px;margin-left:auto">`:''}
+    </div></div>`);
+  lg.querySelector('input').onchange=async(e)=>{ const f=e.target.files[0]; if(!f)return; await DB.put('kv',{id:'logo',blob:f}); if(S.logo)URL.revokeObjectURL(S.logo); S.logo=URL.createObjectURL(f); toast('Logo mis à jour'); nav('admin'); };
+  const rm=lg.querySelector('[data-rmlogo]'); if(rm) rm.onclick=async()=>{ await DB.del('kv','logo'); if(S.logo)URL.revokeObjectURL(S.logo); S.logo=null; nav('admin'); };
+  n.appendChild(lg);
+
+  // Manage gyms
+  const gy=el(`<div class="card"><h2 style="margin-top:2px">Gestion des programmes</h2></div>`);
+  if(!S.gymnasts.length) gy.appendChild(el('<div class="muted">Aucun programme.</div>'));
+  S.gymnasts.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(g=>{
+    ensureSessions(g);
+    const it=el(`<div class="list-item"><div class="name">${esc(g.name)}</div>
+      <div class="meta">${g.sessions.length?g.sessions.length+' séance(s)':''}</div>
+      <button class="btn sm ghost" data-reset>Réinit. séances</button>
+      <button class="btn sm danger" data-del>Suppr.</button></div>`);
+    it.querySelector('[data-reset]').onclick=()=>confirmModal('Réinitialiser',`Effacer toutes les séances de ${g.name} ?`,async()=>{ g.sessions=[]; await saveGym(g); nav('admin'); },{yesText:'Effacer',danger:false});
+    it.querySelector('[data-del]').onclick=()=>confirmModal('Supprimer',`Supprimer ${g.name} ?`,async()=>{ await DB.del('gymnasts',g.id); cloudRemove('gymnasts',g.id); S.gymnasts=S.gymnasts.filter(x=>x.id!==g.id); nav('admin'); });
+    gy.appendChild(it);
+  });
+  n.appendChild(gy);
+
+  // Media shortcut
+  const md=el(`<div class="card"><h2 style="margin-top:2px">Médiathèque</h2>
+    <p class="muted" style="margin-top:0">Ajouter, déplacer, supprimer dossiers et médias.</p>
+    <button class="btn" data-media>Ouvrir la médiathèque</button></div>`);
+  md.querySelector('[data-media]').onclick=()=>{ S.role='admin'; nav('build',{tab:'media'}); };
+  n.appendChild(md);
+  return n;
+}
+
+/* ============================================================
+   ROUTES
+   ============================================================ */
+const ROUTES = {
+  trainerHome, gyms:gymsScreen, gymProfile, build:buildScreen, formation:formationScreen, admin:adminScreen
+};
+
+/* ============================================================
+   Boot
+   ============================================================ */
+async function boot(){
+  await DB.open();
+  await loadAll();
+  await migratePasswords();
+  // ensure kv defaults saved
+  if(!(await DB.get('kv','settings'))) await saveSettings();
+  if(!(await DB.get('kv','folders'))) await saveFolders();
+  render();
+}
+boot();
+return {S,nav};
+})();
+</script>
+</body>
+</html>
