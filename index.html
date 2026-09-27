@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Coaching Dine — Entraînement</title>
 <style>
   :root{
@@ -2003,7 +2004,7 @@ async function ytTitle(url){
 }
 function playYouTube(v){
   const body=el(`<div>
-    <div class="yt-player"><iframe src="https://www.youtube-nocookie.com/embed/${v.yt}?rel=0&autoplay=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>
+    <div class="yt-player"><iframe src="https://www.youtube-nocookie.com/embed/${v.yt}?rel=0&autoplay=1&playsinline=1&origin=${encodeURIComponent(location.origin)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe></div>
     <div class="btnrow" style="justify-content:flex-end;margin-top:12px">
       <a class="btn line sm" href="https://www.youtube.com/watch?v=${v.yt}" target="_blank" rel="noopener">Ouvrir sur YouTube ↗</a>
     </div></div>`);
